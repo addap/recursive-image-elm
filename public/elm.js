@@ -4391,26 +4391,6 @@ var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
 var $elm$core$Basics$False = {$: 'False'};
-var $elm$core$Basics$True = {$: 'True'};
-var $elm$core$Basics$lt = _Utils_lt;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $elm$core$Basics$append = _Utils_append;
-var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
-	if (texture.$ === 'TImage') {
-		var image = texture.a;
-		return {height: image.height, width: image.width};
-	} else {
-		var data = texture.a;
-		return {height: data.height, width: data.width};
-	}
-};
-var $elm$core$Basics$fdiv = _Basics_fdiv;
-var $author$project$Main$height = 400;
 var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $author$project$Main$initialModel = {
 	curPos: _Utils_Tuple2(0.0, 0.0),
@@ -4446,6 +4426,7 @@ var $elm$core$Maybe$Just = function (a) {
 };
 var $elm$core$String$all = _String_all;
 var $elm$core$Basics$and = _Basics_and;
+var $elm$core$Basics$append = _Utils_append;
 var $elm$json$Json$Encode$encode = _Json_encode;
 var $elm$core$String$fromInt = _String_fromNumber;
 var $elm$core$String$join = F2(
@@ -4664,6 +4645,7 @@ var $elm$core$Array$Array_elm_builtin = F4(
 	});
 var $elm$core$Elm$JsArray$empty = _JsArray_empty;
 var $elm$core$Basics$ceiling = _Basics_ceiling;
+var $elm$core$Basics$fdiv = _Basics_fdiv;
 var $elm$core$Basics$logBase = F2(
 	function (base, number) {
 		return _Basics_log(number) / _Basics_log(base);
@@ -4763,6 +4745,7 @@ var $elm$core$Array$builderToArray = F2(
 		}
 	});
 var $elm$core$Basics$idiv = _Basics_idiv;
+var $elm$core$Basics$lt = _Utils_lt;
 var $elm$core$Array$initializeHelp = F5(
 	function (fn, fromIndex, len, nodeList, tail) {
 		initializeHelp:
@@ -4801,6 +4784,7 @@ var $elm$core$Array$initialize = F2(
 			return A5($elm$core$Array$initializeHelp, fn, initialFromIndex, len, _List_Nil, tail);
 		}
 	});
+var $elm$core$Basics$True = {$: 'True'};
 var $elm$core$Result$isOk = function (result) {
 	if (result.$ === 'Ok') {
 		return true;
@@ -5143,6 +5127,22 @@ var $elm$browser$Browser$sandbox = function (impl) {
 			view: impl.view
 		});
 };
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
+	if (texture.$ === 'TImage') {
+		var image = texture.a;
+		return {height: image.height, width: image.width};
+	} else {
+		var data = texture.a;
+		return {height: data.height, width: data.width};
+	}
+};
+var $author$project$Main$height = 400;
 var $joakin$elm_canvas$Canvas$Settings$Advanced$Scale = F2(
 	function (a, b) {
 		return {$: 'Scale', a: a, b: b};
@@ -5398,6 +5398,96 @@ var $joakin$elm_canvas$Canvas$Settings$Advanced$transform = function (transforms
 			},
 			transforms));
 };
+var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
+	function (a, b) {
+		return {$: 'Translate', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
+var $author$project$Main$width = 400;
+var $author$project$Main$update = F2(
+	function (msg, model) {
+		switch (msg.$) {
+			case 'TextureLoaded':
+				var tex = msg.a;
+				if (tex.$ === 'Nothing') {
+					return _Utils_update(
+						model,
+						{tex: tex});
+				} else {
+					var t = tex.a;
+					var sX = $author$project$Main$width / $joakin$elm_canvas$Canvas$Texture$dimensions(t).width;
+					var sY = $author$project$Main$height / $joakin$elm_canvas$Canvas$Texture$dimensions(t).height;
+					var newtex = A3(
+						$joakin$elm_canvas$Canvas$texture,
+						_List_fromArray(
+							[
+								$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+								_List_fromArray(
+									[
+										A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, sX, sY)
+									]))
+							]),
+						_Utils_Tuple2(0, 0),
+						t);
+					return _Utils_update(
+						model,
+						{
+							tex: tex,
+							textures: _List_fromArray(
+								[newtex])
+						});
+				}
+			case 'DownMsg':
+				var p = msg.a;
+				return _Utils_update(
+					model,
+					{dragging: true, startPos: p});
+			case 'MoveMsg':
+				var p = msg.a;
+				return _Utils_update(
+					model,
+					{curPos: p});
+			default:
+				var _v2 = model.tex;
+				if (_v2.$ === 'Nothing') {
+					return _Utils_update(
+						model,
+						{dragging: false});
+				} else {
+					var t = _v2.a;
+					var _v3 = model.startPos;
+					var startX = _v3.a;
+					var startY = _v3.b;
+					var _v4 = model.curPos;
+					var curX = _v4.a;
+					var curY = _v4.b;
+					var sX = $elm$core$Basics$abs(startX - curX) / $joakin$elm_canvas$Canvas$Texture$dimensions(t).width;
+					var sY = $elm$core$Basics$abs(startY - curY) / $joakin$elm_canvas$Canvas$Texture$dimensions(t).height;
+					var newtex = A3(
+						$joakin$elm_canvas$Canvas$texture,
+						_List_fromArray(
+							[
+								$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+								_List_fromArray(
+									[
+										A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, startX, startY),
+										A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, sX, sY)
+									]))
+							]),
+						_Utils_Tuple2(0, 0),
+						t);
+					return _Utils_update(
+						model,
+						{
+							dragging: false,
+							textures: _Utils_ap(
+								model.textures,
+								_List_fromArray(
+									[newtex]))
+						});
+				}
+		}
+	});
 var $author$project$Main$DownMsg = function (a) {
 	return {$: 'DownMsg', a: a};
 };
@@ -5408,7 +5498,6 @@ var $author$project$Main$TextureLoaded = function (a) {
 	return {$: 'TextureLoaded', a: a};
 };
 var $author$project$Main$UpMsg = {$: 'UpMsg'};
-var $author$project$Main$width = 400;
 var $author$project$Main$centerX = $author$project$Main$width / 2;
 var $author$project$Main$centerY = $author$project$Main$height / 2;
 var $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp = function (a) {
@@ -6391,93 +6480,6 @@ var $author$project$Main$view = function (_v0) {
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$sandbox(
-	{
-		init: $author$project$Main$initialModel,
-		update: F2(
-			function (msg, model) {
-				switch (msg.$) {
-					case 'TextureLoaded':
-						var tex = msg.a;
-						var _v1 = model.tex;
-						if (_v1.$ === 'Nothing') {
-							return _Utils_update(
-								model,
-								{tex: tex});
-						} else {
-							var t = _v1.a;
-							var sX = $author$project$Main$width / $joakin$elm_canvas$Canvas$Texture$dimensions(t).width;
-							var sY = $author$project$Main$height / $joakin$elm_canvas$Canvas$Texture$dimensions(t).height;
-							var newtex = A3(
-								$joakin$elm_canvas$Canvas$texture,
-								_List_fromArray(
-									[
-										$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
-										_List_fromArray(
-											[
-												A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, sX, sY)
-											]))
-									]),
-								_Utils_Tuple2(0, 0),
-								t);
-							return _Utils_update(
-								model,
-								{
-									tex: tex,
-									textures: _List_fromArray(
-										[newtex])
-								});
-						}
-					case 'DownMsg':
-						var p = msg.a;
-						return _Utils_update(
-							model,
-							{dragging: true, startPos: p});
-					case 'MoveMsg':
-						var p = msg.a;
-						return _Utils_update(
-							model,
-							{curPos: p});
-					default:
-						var _v2 = model.tex;
-						if (_v2.$ === 'Nothing') {
-							return _Utils_update(
-								model,
-								{dragging: false});
-						} else {
-							var t = _v2.a;
-							var _v3 = model.startPos;
-							var startX = _v3.a;
-							var startY = _v3.b;
-							var _v4 = model.curPos;
-							var curX = _v4.a;
-							var curY = _v4.b;
-							var sX = $elm$core$Basics$abs(startX - curX) / $joakin$elm_canvas$Canvas$Texture$dimensions(t).width;
-							var sY = $elm$core$Basics$abs(startY - curY) / $joakin$elm_canvas$Canvas$Texture$dimensions(t).height;
-							var newtex = A3(
-								$joakin$elm_canvas$Canvas$texture,
-								_List_fromArray(
-									[
-										$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
-										_List_fromArray(
-											[
-												A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, sX, sY)
-											]))
-									]),
-								model.startPos,
-								t);
-							return _Utils_update(
-								model,
-								{
-									dragging: false,
-									textures: _Utils_ap(
-										model.textures,
-										_List_fromArray(
-											[newtex]))
-								});
-						}
-				}
-			}),
-		view: $author$project$Main$view
-	});
+	{init: $author$project$Main$initialModel, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

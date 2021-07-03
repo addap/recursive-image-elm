@@ -39,33 +39,35 @@ main =
     Browser.sandbox
         { init = initialModel
         , view = view
-        , update =
-            \msg model ->
-                case msg of
-                    TextureLoaded tex -> 
-                        case model.tex of 
-                            Nothing -> { model | tex = tex }
-                            Just t ->
-                                let sX = toFloat width / (dimensions t).width in
-                                let sY = toFloat height / (dimensions t).height in
-                                let newtex = texture [transform [scale sX sY]] (0, 0) t in
-                                { model | tex = tex, textures = [ newtex ] }
-                    DownMsg p -> { model | startPos = p, dragging = True }
-                    MoveMsg p -> { model | curPos = p }
-                    UpMsg -> 
-                        case model.tex of
-                           Nothing -> { model | dragging = False }
-                           Just t -> 
-                            let (startX, startY) = model.startPos in
-                            let (curX, curY) = model.curPos in
-                            let sX = (abs (startX - curX)) / (dimensions t).width in
-                            let sY = (abs (startY - curY)) / (dimensions t).height in
-
-                            let newtex = texture [transform [scale sX sY]] model.startPos t in
-                            { model | dragging = False, textures = model.textures ++ [ newtex ] }
-        -- , subscriptions = \model -> onAnimationFrameDelta Frame
+        , update = update
         }
 
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        TextureLoaded tex -> 
+            case tex of 
+                Nothing -> { model | tex = tex }
+                Just t ->
+                    let sX = toFloat width / (dimensions t).width in
+                    let sY = toFloat height / (dimensions t).height in
+                    let newtex = texture [transform [scale sX sY]] (0, 0) t in
+                    { model | tex = tex, textures = [ newtex ] }
+        DownMsg p -> { model | startPos = p, dragging = True }
+        MoveMsg p -> { model | curPos = p }
+        UpMsg -> 
+            case model.tex of
+                Nothing -> { model | dragging = False }
+                Just t -> 
+                    let (startX, startY) = model.startPos in
+                    let (curX, curY) = model.curPos in
+                    let sX = (abs (startX - curX)) / (dimensions t).width in
+                    let sY = (abs (startY - curY)) / (dimensions t).height in
+
+                    -- since the scaling also affects the anchor position I set it to (0, 0) and then translate after the scaling.
+                    -- to do multiple levels at one I would still need to compute a new anchor each time by using the scaling factor
+                    let newtex = texture [transform [translate startX startY, scale sX sY]] (0, 0) t in
+                    { model | dragging = False, textures = model.textures ++ [ newtex ] }
 
 width =
     400
