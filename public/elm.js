@@ -5326,13 +5326,14 @@ var $author$project$Zipper$mkZipper = F2(
 	function (x, l) {
 		return {focus: x, next: l, prev: _List_Nil};
 	});
+var $avh4$elm_color$Color$orange = A4($avh4$elm_color$Color$RgbaSpace, 245 / 255, 121 / 255, 0 / 255, 1.0);
 var $avh4$elm_color$Color$red = A4($avh4$elm_color$Color$RgbaSpace, 204 / 255, 0 / 255, 0 / 255, 1.0);
 var $author$project$Main$initialModel = function () {
 	var colors = A2(
 		$author$project$Zipper$mkZipper,
 		$avh4$elm_color$Color$red,
 		_List_fromArray(
-			[$avh4$elm_color$Color$green, $avh4$elm_color$Color$blue]));
+			[$avh4$elm_color$Color$green, $avh4$elm_color$Color$blue, $avh4$elm_color$Color$orange]));
 	var selections = A2($author$project$Zipper$map, $author$project$Rect$mkSelection, colors);
 	return {
 		cDim: _Utils_Tuple2(400, 400),
@@ -5354,6 +5355,11 @@ var $author$project$Main$LoadTex = function (a) {
 };
 var $author$project$Zipper$Next = {$: 'Next'};
 var $author$project$Zipper$Prev = {$: 'Prev'};
+var $author$project$Rect$deactivate = function (s) {
+	return _Utils_update(
+		s,
+		{isActive: false});
+};
 var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
 	if (texture.$ === 'TImage') {
 		var image = texture.a;
@@ -5731,17 +5737,6 @@ var $elm$time$Time$Posix = function (a) {
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$file$File$toUrl = _File_toUrl;
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -5796,18 +5791,6 @@ var $joakin$elm_canvas$Canvas$group = F2(
 					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
 				}));
 	});
-var $author$project$Util$iterCollect = F3(
-	function (n, f, x) {
-		if (n > 0) {
-			var rec = A3($author$project$Util$iterCollect, n - 1, f, x);
-			return A2(
-				$elm$core$List$cons,
-				f(x),
-				A2($elm$core$List$map, f, rec));
-		} else {
-			return _List_Nil;
-		}
-	});
 var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
 	function (a, b) {
 		return {$: 'Translate', a: a, b: b};
@@ -5818,32 +5801,44 @@ var $author$project$Rect$width = function (_v0) {
 	var x2 = _v0.x2;
 	return x2 - x1;
 };
-var $author$project$Main$addRecursion = F4(
-	function (initialRenders, _v0, rect, recSteps) {
+var $author$project$Main$addRecursion2 = F3(
+	function (_v0, rects, renders) {
 		var cWidth = _v0.a;
 		var cHeight = _v0.b;
-		var aspectRect = A2($author$project$Rect$fitRectAspect, cWidth / cHeight, rect);
-		var s = $author$project$Rect$width(aspectRect) / cWidth;
-		var rec = function (rs) {
-			return _List_fromArray(
-				[
-					A2(
-					$joakin$elm_canvas$Canvas$group,
-					_List_fromArray(
-						[
-							$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
-							_List_fromArray(
-								[
-									A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, aspectRect.x1, aspectRect.y1),
-									A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
-								]))
-						]),
-					rs)
-				]);
+		var copy = function (r) {
+			var s = $author$project$Rect$width(r) / cWidth;
+			return A2(
+				$joakin$elm_canvas$Canvas$group,
+				_List_fromArray(
+					[
+						$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+						_List_fromArray(
+							[
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1, r.y1),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
+							]))
+					]),
+				renders);
 		};
-		var newRenders = A3($author$project$Util$iterCollect, recSteps, rec, initialRenders);
-		return $elm$core$List$concat(newRenders);
+		var aspect = cWidth / cHeight;
+		var aspectRects = A2(
+			$elm$core$List$map,
+			$author$project$Rect$fitRectAspect(aspect),
+			rects);
+		var newRenders = A2($elm$core$List$map, copy, aspectRects);
+		return newRenders;
 	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
 var $elm$core$List$maybeCons = F3(
 	function (f, mx, xs) {
 		var _v0 = f(mx);
@@ -5862,6 +5857,19 @@ var $elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
+var $author$project$Util$iterCollect = F3(
+	function (n, f, x) {
+		if (n > 0) {
+			var rec = A3($author$project$Util$iterCollect, n - 1, f, x);
+			return A2(
+				$elm$core$List$cons,
+				x,
+				A2($elm$core$List$map, f, rec));
+		} else {
+			return _List_fromArray(
+				[x]);
+		}
+	});
 var $author$project$Zipper$toList = function (_v0) {
 	var prev = _v0.prev;
 	var focus = _v0.focus;
@@ -5870,29 +5878,42 @@ var $author$project$Zipper$toList = function (_v0) {
 		$elm$core$List$reverse(prev),
 		A2($elm$core$List$cons, focus, next));
 };
-var $author$project$Main$addRecursions = function (model) {
+var $author$project$Util$trunc_tail = function (l) {
+	if (!l.b) {
+		return _List_Nil;
+	} else {
+		var t = l.b;
+		return t;
+	}
+};
+var $author$project$Main$addRecursions2 = function (model) {
 	var initialRenders = model.initialRenders;
 	var renders = model.renders;
 	var cDim = model.cDim;
 	var selections = model.selections;
 	var recSteps = model.recSteps;
-	var processSelection = function (sel) {
-		return sel.isActive ? $elm$core$Maybe$Just(
-			A4($author$project$Main$addRecursion, initialRenders, cDim, sel.rect, recSteps)) : $elm$core$Maybe$Nothing;
-	};
-	var newRenders = $elm$core$List$concat(
-		A2(
-			$elm$core$List$filterMap,
-			processSelection,
-			$author$project$Zipper$toList(selections)));
+	var activeRects = A2(
+		$elm$core$List$filterMap,
+		function (s) {
+			return s.isActive ? $elm$core$Maybe$Just(s.rect) : $elm$core$Maybe$Nothing;
+		},
+		$author$project$Zipper$toList(selections));
+	var newRenders = $author$project$Util$trunc_tail(
+		A3(
+			$author$project$Util$iterCollect,
+			recSteps,
+			A2($author$project$Main$addRecursion2, cDim, activeRects),
+			initialRenders));
 	return _Utils_update(
 		model,
 		{
-			renders: _Utils_ap(renders, newRenders)
+			renders: _Utils_ap(
+				renders,
+				$elm$core$List$concat(newRenders))
 		});
 };
 var $author$project$Main$updateRenders = function (model) {
-	return $author$project$Main$addRecursions(
+	return $author$project$Main$addRecursions2(
 		$author$project$Main$resetRenders(model));
 };
 var $author$project$Main$update = F2(
@@ -5964,10 +5985,11 @@ var $author$project$Main$update = F2(
 				return $author$project$Main$lm(
 					$author$project$Main$resetRenders(model));
 			case 'Stamp':
+				var selections = A2($author$project$Zipper$map, $author$project$Rect$deactivate, model.selections);
 				return $author$project$Main$lm(
 					_Utils_update(
 						model,
-						{initialRenders: model.renders}));
+						{initialRenders: model.renders, selections: selections}));
 			case 'PrevSelection':
 				var _v5 = A2($author$project$Zipper$move, $author$project$Zipper$Prev, model.selections);
 				var selections = _v5.a;
@@ -5975,15 +5997,23 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{selections: selections}));
-			default:
+			case 'NextSelection':
 				var _v6 = A2($author$project$Zipper$move, $author$project$Zipper$Next, model.selections);
 				var selections = _v6.a;
 				return $author$project$Main$lm(
 					_Utils_update(
 						model,
 						{selections: selections}));
+			default:
+				var selections = A2($author$project$Zipper$modify, $author$project$Rect$deactivate, model.selections);
+				return $author$project$Main$lm(
+					$author$project$Main$updateRenders(
+						_Utils_update(
+							model,
+							{selections: selections})));
 		}
 	});
+var $author$project$Main$ClearSelection = {$: 'ClearSelection'};
 var $author$project$Main$DownMsg = function (a) {
 	return {$: 'DownMsg', a: a};
 };
@@ -7198,6 +7228,16 @@ var $author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$text('Next')
+					])),
+				A2(
+				$elm$html$Html$button,
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick($author$project$Main$ClearSelection)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Clean')
 					]))
 			]));
 	var contents = function () {

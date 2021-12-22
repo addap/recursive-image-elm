@@ -18,7 +18,7 @@ import Json.Decode as D
 import Rect as R exposing (Rect, Selection, fitRectAspect, mkRectDim, mkSelection, selDown, selMove, selUp)
 import Task
 import Tuple exposing (first, second)
-import Util exposing (iterCollect)
+import Util exposing (iter, iterCollect, trunc_tail)
 import Zipper as Z exposing (Movement, Zipper, move)
 
 
@@ -53,7 +53,7 @@ initialModel : Model
 initialModel =
     let
         colors =
-            Z.mkZipper Color.red [ Color.green, Color.blue ]
+            Z.mkZipper Color.red [ Color.green, Color.blue, Color.orange ]
 
         selections =
             Z.map R.mkSelection colors
@@ -96,6 +96,7 @@ type Msg
     | Stamp
     | NextSelection
     | PrevSelection
+    | ClearSelection
 
 
 main : Program () Model Msg
@@ -131,47 +132,93 @@ main =
 --     -- let newtex2 = texture [transform [translate (startX * 0.5) (startY * 0.5), translate startX startY, scale 0.25 0.25]] (0, 0) t in
 --     -- [ newtex, newtex2 ]
 -- Take the renders from the model and place them into the selection rectangle again.
-
-
-addRecursion : List Renderable -> Point -> Rect -> Int -> List Renderable
-addRecursion initialRenders ( cWidth, cHeight ) rect recSteps =
-    let
-        aspectRect =
-            fitRectAspect (cWidth / cHeight) rect
-
-        s =
-            R.width aspectRect / cWidth
-
-        rec rs =
-            [ group [ transform [ translate aspectRect.x1 aspectRect.y1, scale s s ] ] rs ]
-
-        newRenders =
-            iterCollect recSteps rec initialRenders
-    in
-    List.concat newRenders
+-- addRecursion : List Renderable -> Point -> Rect -> Int -> List Renderable
+-- addRecursion initialRenders ( cWidth, cHeight ) rect recSteps =
+--     let
+--         aspectRect =
+--             fitRectAspect (cWidth / cHeight) rect
+--         s =
+--             R.width aspectRect / cWidth
+--         rec rs =
+--             [ group [ transform [ translate aspectRect.x1 aspectRect.y1, scale s s ] ] rs ]
+--         newRenders =
+--             trunc_tail (iterCollect recSteps rec initialRenders)
+--     in
+--     List.concat newRenders
 
 
 {-| Fill in recursive images in all active selections.
 -}
-addRecursions : Model -> Model
-addRecursions ({ initialRenders, renders, cDim, selections, recSteps } as model) =
-    let
-        processSelection sel =
-            if sel.isActive then
-                Just (addRecursion initialRenders cDim sel.rect recSteps)
 
-            else
-                Nothing
+
+
+-- addRecursions : Model -> Model
+-- addRecursions ({ initialRenders, renders, cDim, selections, recSteps } as model) =
+--     let
+--         processSelection sel =
+--             if sel.isActive then
+--                 Just (addRecursion initialRenders cDim sel.rect recSteps)
+--             else
+--                 Nothing
+--         newRenders =
+--             List.concat (List.filterMap processSelection (Z.toList selections))
+--     in
+--     { model | renders = renders ++ newRenders }
+
+
+addRecursion2 : Point -> List Rect -> List Renderable -> List Renderable
+addRecursion2 ( cWidth, cHeight ) rects renders =
+    let
+        aspect =
+            cWidth / cHeight
+
+        aspectRects =
+            List.map (fitRectAspect aspect) rects
+
+        copy r =
+            let
+                s =
+                    R.width r / cWidth
+            in
+            group [ transform [ translate r.x1 r.y1, scale s s ] ] renders
 
         newRenders =
-            List.concat (List.filterMap processSelection (Z.toList selections))
+            List.map copy aspectRects
     in
-    { model | renders = renders ++ newRenders }
+    newRenders
+
+
+{-| Fill in recursive images in all active selections.
+This is done iteratively:
+
+1.  in step 1 we copy the initialRenders to the selections
+2.  in step n we copy the renders of n-1 to the selections
+
+-}
+addRecursions2 : Model -> Model
+addRecursions2 ({ initialRenders, renders, cDim, selections, recSteps } as model) =
+    let
+        activeRects =
+            List.filterMap
+                (\s ->
+                    if s.isActive then
+                        Just s.rect
+
+                    else
+                        Nothing
+                )
+                (Z.toList selections)
+
+        -- trunc_tail to throw away the initialRenders
+        newRenders =
+            trunc_tail (iterCollect recSteps (addRecursion2 cDim activeRects) initialRenders)
+    in
+    { model | renders = renders ++ List.concat newRenders }
 
 
 updateRenders : Model -> Model
 updateRenders model =
-    resetRenders model |> addRecursions
+    resetRenders model |> addRecursions2
 
 
 {-| Lift a model to a mode, command pair.
@@ -236,7 +283,11 @@ update msg model =
             resetRenders model |> lm
 
         Stamp ->
-            { model | initialRenders = model.renders } |> lm
+            let
+                selections =
+                    Z.map R.deactivate model.selections
+            in
+            { model | initialRenders = model.renders, selections = selections } |> lm
 
         PrevSelection ->
             let
@@ -251,6 +302,13 @@ update msg model =
                     move Z.Next model.selections
             in
             { model | selections = selections } |> lm
+
+        ClearSelection ->
+            let
+                selections =
+                    Z.modify R.deactivate model.selections
+            in
+            { model | selections = selections } |> updateRenders |> lm
 
 
 {-| Initialize the renders of a model from a texture
@@ -309,6 +367,7 @@ view ({ tex, renders, cDim, selections, url, recSteps } as model) =
                 [ button [ onClick PrevSelection ] [ text "Prev" ]
                 , label [ style "background-color" (Color.toCssString selections.focus.color) ] [ text "Current" ]
                 , button [ onClick NextSelection ] [ text "Next" ]
+                , button [ onClick ClearSelection ] [ text "Clean" ]
                 ]
     in
     div

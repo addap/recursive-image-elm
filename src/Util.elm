@@ -1,15 +1,22 @@
 module Util exposing (..)
 
+{-| Utility functions.
+-}
 
+
+{-| Compute the range [0, ..., n]
+-}
 range : Int -> List Int
-range x =
-    if x > 0 then
-        range (x - 1) ++ [ x ]
+range n =
+    if n > 0 then
+        range (n - 1) ++ [ n ]
 
     else
         []
 
 
+{-| Compute the iteration f^n x
+-}
 iter : Int -> (a -> a) -> a -> a
 iter n f x =
     if n > 0 then
@@ -19,6 +26,8 @@ iter n f x =
         x
 
 
+{-| Compute the iteration with saved intermediates [x, f x, ..., f^n x]
+-}
 iterCollect : Int -> (a -> a) -> a -> List a
 iterCollect n f x =
     if n > 0 then
@@ -26,12 +35,24 @@ iterCollect n f x =
             rec =
                 iterCollect (n - 1) f x
         in
-        f x :: List.map f rec
+        x :: List.map f rec
 
     else
-        []
+        [ x ]
 
 
+trunc_tail : List a -> List a
+trunc_tail l =
+    case l of
+        [] ->
+            []
+
+        _ :: t ->
+            t
+
+
+{-| Return -1 if number is negative, 1 if number is positive and 0 otherwise.
+-}
 sign : number -> number
 sign x =
     if x < 0 then

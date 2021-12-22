@@ -1,22 +1,28 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <style>
-      body,
-      div:first-child {
-        margin: 0;
-        height: 100vh;
-      }
-    </style>
-  </head>
-  <body>
-    <main></main>
-    <script src="./elm-canvas.js"></script>
-    <script src="./elm.js"></script>
-    <script>
-      var app = Elm.Main.init({ node: document.querySelector("main") });
+
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body,
+    div:first-child {
+      margin: 0;
+      height: 100vh;
+    }
+  </style>
+</head>
+
+<body>
+  <main></main>
+  <script src="./elm-canvas.js"></script>
+  <script src="./elm.js"></script>
+  <script>
+    var app = Elm.Main.init({ node: document.querySelector("main") });
       // you can use ports and stuff here
-    </script>
-  </body>
+  </script>
+</body>
+<footer>
+  <a href="https://github.com/addap/recursive-image-elm">Source: GitHub</a>
+</footer>
+
 </html>

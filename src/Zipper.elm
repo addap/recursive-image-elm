@@ -1,6 +1,7 @@
 module Zipper exposing (Movement(..), Zipper, map, mkZipper, modify, move, toList)
 
-import Html exposing (a)
+{-| Zipper datastructure to do efficient forward and backwards movement.
+-}
 
 
 type alias Zipper a =

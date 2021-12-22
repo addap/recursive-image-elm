@@ -1,4 +1,4 @@
-module Rect exposing (Corner(..), Rect, Selection, fitRectAspect, getC, height, mkRect, mkRectDim, mkSelection, renderSelection, selDown, selMove, selUp, width)
+module Rect exposing (Corner(..), Rect, Selection, deactivate, fitRectAspect, getC, height, mkRect, mkRectDim, mkSelection, renderSelection, selDown, selMove, selUp, width)
 
 import Canvas exposing (Point, Renderable, group, lineTo, path, rect, shapes, texture)
 import Canvas.Settings exposing (fill, stroke)
@@ -137,3 +137,8 @@ width { x1, x2 } =
 
 height { y1, y2 } =
     y2 - y1
+
+
+deactivate : Selection -> Selection
+deactivate s =
+    { s | isActive = False }
