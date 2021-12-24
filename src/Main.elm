@@ -248,7 +248,7 @@ addRecursion2 cWidth width ( x1, y1 ) rects renders =
                     Debug.log "r.(x1, y1) = " ( r.x1, r.y1 )
             in
             -- group [ transform [ translate (r.x1 - x1) (r.y1 - y1) ] ] renders
-            group [ transform [ translate (r.x1 - x1) (r.y1 - y1), scale s s ] ] renders
+            group [ transform [ translate r.x1 r.y1, scale s s, translate -x1 -y1 ] ] renders
 
         -- group [ transform [ scale (1 / s2) (1 / s2), translate -x1 -y1, translate r.x1 r.y1, scale (s * s2) (s * s2) ] ] renders
         newRenders =
@@ -417,38 +417,7 @@ update msg model =
             { model | blobUrl = blobUrl } |> lm
 
         BlobLoaded tex ->
-            case tex of
-                Nothing ->
-                    let
-                        _ =
-                            Debug.log "blob failed" ()
-                    in
-                    model |> lm
-
-                Just t ->
-                    let
-                        _ =
-                            Debug.log "blob!" t
-
-                        { width, height } =
-                            T.dimensions t
-
-                        -- compute the scaling factor so that the new image fits into the canvas width
-                        s =
-                            first initialModel.cDim / width
-
-                        sourceRect =
-                            (Z.getFirst model.selections).rect
-
-                        newSource =
-                            texture [ transform [ translate sourceRect.x1 sourceRect.y1, scale s s ] ]
-                                -- ( sourceRect.x1 / s, sourceRect.y1 / s )
-                                ( 0, 0 )
-                                (T.sprite { x = sourceRect.x1 / s, y = sourceRect.y1 / s, width = R.getWidth sourceRect / s, height = R.getHeight sourceRect / s }
-                                    t
-                                )
-                    in
-                    { model | sourceRender = newSource } |> updateRenders |> lm
+            changeSource tex model |> lm
 
         ChangeGrid b ->
             { model | showGrid = b } |> lm
@@ -490,6 +459,42 @@ initRenders tex model =
 resetRenders : Model -> Model
 resetRenders model =
     { model | renders = [ model.initialRender ] }
+
+
+changeSource : Maybe Texture -> Model -> Model
+changeSource tex model =
+    case tex of
+        Nothing ->
+            let
+                _ =
+                    Debug.log "blob failed" ()
+            in
+            model
+
+        Just t ->
+            let
+                _ =
+                    Debug.log "blob!" t
+
+                { width, height } =
+                    T.dimensions t
+
+                -- compute the scaling factor so that the new image fits into the canvas width
+                s =
+                    first initialModel.cDim / width
+
+                sourceRect =
+                    (Z.getFirst model.selections).rect
+
+                newSource =
+                    -- first scale down and then translate to the correct position
+                    texture [ transform [ translate sourceRect.x1 sourceRect.y1, scale s s ] ]
+                        ( 0, 0 )
+                        (T.sprite { x = sourceRect.x1 / s, y = sourceRect.y1 / s, width = R.getWidth sourceRect / s, height = R.getHeight sourceRect / s }
+                            t
+                        )
+            in
+            { model | sourceRender = newSource } |> updateRenders
 
 
 upSelection : Model -> ( Model, Cmd Msg )
@@ -702,6 +707,48 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 -- , style "display" "none"
                 ]
                 ([ clearCanvas cDim Color.lightGrey, sourceRender ]
+                    ++ grid
+                )
+            , let
+                rectSize =
+                    2 * gridStep
+
+                origin : Point
+                origin =
+                    ( 2 * gridStep, 2 * gridStep )
+
+                yl =
+                    shapes [ fill Color.yellow, transform [ scale 3 3, translate gridStep gridStep ] ]
+                        [ rect origin rectSize rectSize
+                        ]
+              in
+              Canvas.toHtml ( cWidth, cHeight )
+                []
+                ([ shapes [ fill Color.red ]
+                    [ rect origin rectSize rectSize
+                    ]
+                 , shapes [ fill Color.purple, transform [ scale 2 2 ] ]
+                    [ rect origin rectSize rectSize
+                    ]
+                 , shapes [ fill Color.green, transform [ translate gridStep gridStep ] ]
+                    [ rect origin rectSize rectSize
+                    ]
+                 , shapes [ fill Color.blue, transform [ translate gridStep gridStep, scale 2 2 ] ]
+                    [ rect origin rectSize rectSize
+                    ]
+
+                 -- first translation, then scaling resulting in (9, 9)
+                 , yl
+
+                 -- scale down and then translation. translation is unaffected by scaling
+                 , group [ transform [ translate 0 (5 * gridStep), scale 0.5 0.5 ] ] [ yl ]
+
+                 -- translation and then scale down, scaling just affects the global x and y coordinates of the shape
+                 , group [ transform [ scale 0.5 0.5, translate 0 (-5 * gridStep) ] ] [ yl ]
+
+                 -- this is an inversion of the transform on yl i.e. it's in the same position of the red square
+                 , group [ transform [ translate -gridStep -gridStep, scale (1 / 3) (1 / 3) ] ] [ yl ]
+                 ]
                     ++ grid
                 )
             ]

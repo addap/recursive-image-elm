@@ -5551,22 +5551,6 @@ var $elm$core$List$all = F2(
 			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
 			list);
 	});
-var $author$project$Rect$setActive = F2(
-	function (b, mode) {
-		if (mode.$ === 'SelectionSource') {
-			return $author$project$Rect$SelectionSource;
-		} else {
-			return $author$project$Rect$SelectionSink(b);
-		}
-	});
-var $author$project$Rect$deactivate = function (sel) {
-	return _Utils_update(
-		sel,
-		{
-			mode: A2($author$project$Rect$setActive, false, sel.mode),
-			rect: sel.initialRect
-		});
-};
 var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
 	if (texture.$ === 'TImage') {
 		var image = texture.a;
@@ -5600,34 +5584,26 @@ var $author$project$Rect$getWidth = function (_v0) {
 	var x2 = _v0.x2;
 	return $elm$core$Basics$abs(x2 - x1);
 };
-var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup = function (a) {
-	return {$: 'DrawableGroup', a: a};
-};
-var $joakin$elm_canvas$Canvas$group = F2(
-	function (settings, entities) {
-		return A2(
-			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
-			settings,
-			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
-				{
-					commands: _List_Nil,
-					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
-					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
-				}));
-	});
-var $author$project$Zipper$modify = F2(
-	function (f, z) {
-		return _Utils_update(
-			z,
-			{
-				focus: f(z.focus)
-			});
-	});
+var $elm$core$Debug$log = _Debug_log;
 var $joakin$elm_canvas$Canvas$Settings$Advanced$Scale = F2(
 	function (a, b) {
 		return {$: 'Scale', a: a, b: b};
 	});
 var $joakin$elm_canvas$Canvas$Settings$Advanced$scale = $joakin$elm_canvas$Canvas$Settings$Advanced$Scale;
+var $joakin$elm_canvas$Canvas$Internal$Texture$TSprite = F2(
+	function (a, b) {
+		return {$: 'TSprite', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Texture$sprite = F2(
+	function (data, texture) {
+		if (texture.$ === 'TImage') {
+			var image = texture.a;
+			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
+		} else {
+			var image = texture.b;
+			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
+		}
+	});
 var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableTexture = F2(
 	function (a, b) {
 		return {$: 'DrawableTexture', a: a, b: b};
@@ -5762,6 +5738,255 @@ var $joakin$elm_canvas$Canvas$Settings$Advanced$transform = function (transforms
 			},
 			transforms));
 };
+var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
+	function (a, b) {
+		return {$: 'Translate', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
+var $author$project$Rect$UL = {$: 'UL'};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup = function (a) {
+	return {$: 'DrawableGroup', a: a};
+};
+var $joakin$elm_canvas$Canvas$group = F2(
+	function (settings, entities) {
+		return A2(
+			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
+			settings,
+			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
+				{
+					commands: _List_Nil,
+					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
+					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
+				}));
+	});
+var $author$project$Main$addRecursion2 = F5(
+	function (cWidth, width, _v0, rects, renders) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
+		var copy = function (r) {
+			var s2 = width / cWidth;
+			var s = $author$project$Rect$getWidth(r) / width;
+			var _v1 = A2(
+				$elm$core$Debug$log,
+				'(s, s2) = ',
+				_Utils_Tuple2(s, s2));
+			var _v2 = A2(
+				$elm$core$Debug$log,
+				'(x1, y1) = ',
+				_Utils_Tuple2(x1, y1));
+			var _v3 = A2(
+				$elm$core$Debug$log,
+				'r.(x1, y1) = ',
+				_Utils_Tuple2(r.x1, r.y1));
+			return A2(
+				$joakin$elm_canvas$Canvas$group,
+				_List_fromArray(
+					[
+						$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+						_List_fromArray(
+							[
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1, r.y1),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, -x1, -y1)
+							]))
+					]),
+				renders);
+		};
+		var newRenders = A2($elm$core$List$map, copy, rects);
+		return newRenders;
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $author$project$Rect$getC = F2(
+	function (c, _v0) {
+		var x1 = _v0.x1;
+		var y1 = _v0.y1;
+		var x2 = _v0.x2;
+		var y2 = _v0.y2;
+		switch (c.$) {
+			case 'UL':
+				return _Utils_Tuple2(x1, y1);
+			case 'UR':
+				return _Utils_Tuple2(x2, y1);
+			case 'LL':
+				return _Utils_Tuple2(x1, y2);
+			default:
+				return _Utils_Tuple2(x2, y2);
+		}
+	});
+var $author$project$Util$iterCollect = F3(
+	function (n, f, x) {
+		if (n > 0) {
+			var rec = A3($author$project$Util$iterCollect, n - 1, f, x);
+			return A2(
+				$elm$core$List$cons,
+				x,
+				A2($elm$core$List$map, f, rec));
+		} else {
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $author$project$Zipper$toList = function (_v0) {
+	var prev = _v0.prev;
+	var focus = _v0.focus;
+	var next = _v0.next;
+	return _Utils_ap(
+		$elm$core$List$reverse(prev),
+		A2($elm$core$List$cons, focus, next));
+};
+var $author$project$Util$trunc_tail = function (l) {
+	if (!l.b) {
+		return _List_Nil;
+	} else {
+		var t = l.b;
+		return t;
+	}
+};
+var $author$project$Main$addRecursions2 = function (model) {
+	var sourceRender = model.sourceRender;
+	var renders = model.renders;
+	var cDim = model.cDim;
+	var selections = model.selections;
+	var recSteps = model.recSteps;
+	var sourceRect = $author$project$Zipper$getFirst(selections).rect;
+	var sinkRects = A2(
+		$elm$core$List$filterMap,
+		function (sel) {
+			var _v1 = sel.mode;
+			if ((_v1.$ === 'SelectionSink') && _v1.a) {
+				return $elm$core$Maybe$Just(sel.rect);
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		},
+		$author$project$Zipper$toList(selections));
+	var _v0 = cDim;
+	var cWidth = _v0.a;
+	var cHeight = _v0.b;
+	var newRenders = $author$project$Util$trunc_tail(
+		A3(
+			$author$project$Util$iterCollect,
+			recSteps,
+			A4(
+				$author$project$Main$addRecursion2,
+				cWidth,
+				$author$project$Rect$getWidth(sourceRect),
+				A2($author$project$Rect$getC, $author$project$Rect$UL, sourceRect),
+				sinkRects),
+			_List_fromArray(
+				[sourceRender])));
+	return _Utils_update(
+		model,
+		{
+			renders: _Utils_ap(
+				renders,
+				$elm$core$List$concat(newRenders))
+		});
+};
+var $author$project$Main$resetRenders = function (model) {
+	return _Utils_update(
+		model,
+		{
+			renders: _List_fromArray(
+				[model.initialRender])
+		});
+};
+var $author$project$Main$updateRenders = function (model) {
+	return $author$project$Main$addRecursions2(
+		$author$project$Main$resetRenders(model));
+};
+var $author$project$Main$changeSource = F2(
+	function (tex, model) {
+		if (tex.$ === 'Nothing') {
+			var _v1 = A2($elm$core$Debug$log, 'blob failed', _Utils_Tuple0);
+			return model;
+		} else {
+			var t = tex.a;
+			var sourceRect = $author$project$Zipper$getFirst(model.selections).rect;
+			var _v2 = $joakin$elm_canvas$Canvas$Texture$dimensions(t);
+			var width = _v2.width;
+			var height = _v2.height;
+			var s = $author$project$Main$initialModel.cDim.a / width;
+			var newSource = A3(
+				$joakin$elm_canvas$Canvas$texture,
+				_List_fromArray(
+					[
+						$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+						_List_fromArray(
+							[
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, sourceRect.x1, sourceRect.y1),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
+							]))
+					]),
+				_Utils_Tuple2(0, 0),
+				A2(
+					$joakin$elm_canvas$Canvas$Texture$sprite,
+					{
+						height: $author$project$Rect$getHeight(sourceRect) / s,
+						width: $author$project$Rect$getWidth(sourceRect) / s,
+						x: sourceRect.x1 / s,
+						y: sourceRect.y1 / s
+					},
+					t));
+			var _v3 = A2($elm$core$Debug$log, 'blob!', t);
+			return $author$project$Main$updateRenders(
+				_Utils_update(
+					model,
+					{sourceRender: newSource}));
+		}
+	});
+var $author$project$Rect$setActive = F2(
+	function (b, mode) {
+		if (mode.$ === 'SelectionSource') {
+			return $author$project$Rect$SelectionSource;
+		} else {
+			return $author$project$Rect$SelectionSink(b);
+		}
+	});
+var $author$project$Rect$deactivate = function (sel) {
+	return _Utils_update(
+		sel,
+		{
+			mode: A2($author$project$Rect$setActive, false, sel.mode),
+			rect: sel.initialRect
+		});
+};
+var $author$project$Zipper$modify = F2(
+	function (f, z) {
+		return _Utils_update(
+			z,
+			{
+				focus: f(z.focus)
+			});
+	});
 var $author$project$Main$initRenders = F2(
 	function (tex, model) {
 		if (tex.$ === 'Nothing') {
@@ -5814,7 +6039,6 @@ var $author$project$Main$initRenders = F2(
 var $author$project$Main$lm = function (m) {
 	return _Utils_Tuple2(m, $elm$core$Platform$Cmd$none);
 };
-var $elm$core$Debug$log = _Debug_log;
 var $author$project$Zipper$map = F2(
 	function (f, _v0) {
 		var prev = _v0.prev;
@@ -5861,14 +6085,6 @@ var $author$project$Zipper$move = F2(
 			}
 		}
 	});
-var $author$project$Main$resetRenders = function (model) {
-	return _Utils_update(
-		model,
-		{
-			renders: _List_fromArray(
-				[model.initialRender])
-		});
-};
 var $author$project$Rect$selDown = F2(
 	function (p, sel) {
 		return _Utils_update(
@@ -5896,38 +6112,11 @@ var $author$project$Rect$selMove = F2(
 					{x2: x2, y2: y2})
 			});
 	});
-var $joakin$elm_canvas$Canvas$Internal$Texture$TSprite = F2(
-	function (a, b) {
-		return {$: 'TSprite', a: a, b: b};
-	});
-var $joakin$elm_canvas$Canvas$Texture$sprite = F2(
-	function (data, texture) {
-		if (texture.$ === 'TImage') {
-			var image = texture.a;
-			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
-		} else {
-			var image = texture.b;
-			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
-		}
-	});
-var $author$project$Zipper$toList = function (_v0) {
-	var prev = _v0.prev;
-	var focus = _v0.focus;
-	var next = _v0.next;
-	return _Utils_ap(
-		$elm$core$List$reverse(prev),
-		A2($elm$core$List$cons, focus, next));
-};
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$file$File$toUrl = _File_toUrl;
-var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
-	function (a, b) {
-		return {$: 'Translate', a: a, b: b};
-	});
-var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
 var $author$project$Rect$getAspect = function (r) {
 	return $author$project$Rect$getWidth(r) / $author$project$Rect$getHeight(r);
 };
@@ -5998,155 +6187,6 @@ var $author$project$Rect$selUp = F2(
 				{rect: aspectRect});
 		}
 	});
-var $author$project$Rect$UL = {$: 'UL'};
-var $author$project$Main$addRecursion2 = F5(
-	function (cWidth, width, _v0, rects, renders) {
-		var x1 = _v0.a;
-		var y1 = _v0.b;
-		var copy = function (r) {
-			var s2 = width / cWidth;
-			var s = $author$project$Rect$getWidth(r) / width;
-			var _v1 = A2(
-				$elm$core$Debug$log,
-				'(s, s2) = ',
-				_Utils_Tuple2(s, s2));
-			var _v2 = A2(
-				$elm$core$Debug$log,
-				'(x1, y1) = ',
-				_Utils_Tuple2(x1, y1));
-			var _v3 = A2(
-				$elm$core$Debug$log,
-				'r.(x1, y1) = ',
-				_Utils_Tuple2(r.x1, r.y1));
-			return A2(
-				$joakin$elm_canvas$Canvas$group,
-				_List_fromArray(
-					[
-						$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
-						_List_fromArray(
-							[
-								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1 - x1, r.y1 - y1),
-								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s),
-								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, (-x1) * s2, (-y1) * s2)
-							]))
-					]),
-				renders);
-		};
-		var newRenders = A2($elm$core$List$map, copy, rects);
-		return newRenders;
-	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
-var $author$project$Rect$getC = F2(
-	function (c, _v0) {
-		var x1 = _v0.x1;
-		var y1 = _v0.y1;
-		var x2 = _v0.x2;
-		var y2 = _v0.y2;
-		switch (c.$) {
-			case 'UL':
-				return _Utils_Tuple2(x1, y1);
-			case 'UR':
-				return _Utils_Tuple2(x2, y1);
-			case 'LL':
-				return _Utils_Tuple2(x1, y2);
-			default:
-				return _Utils_Tuple2(x2, y2);
-		}
-	});
-var $author$project$Util$iterCollect = F3(
-	function (n, f, x) {
-		if (n > 0) {
-			var rec = A3($author$project$Util$iterCollect, n - 1, f, x);
-			return A2(
-				$elm$core$List$cons,
-				x,
-				A2($elm$core$List$map, f, rec));
-		} else {
-			return _List_fromArray(
-				[x]);
-		}
-	});
-var $author$project$Util$trunc_tail = function (l) {
-	if (!l.b) {
-		return _List_Nil;
-	} else {
-		var t = l.b;
-		return t;
-	}
-};
-var $author$project$Main$addRecursions2 = function (model) {
-	var sourceRender = model.sourceRender;
-	var renders = model.renders;
-	var cDim = model.cDim;
-	var selections = model.selections;
-	var recSteps = model.recSteps;
-	var sourceRect = $author$project$Zipper$getFirst(selections).rect;
-	var sinkRects = A2(
-		$elm$core$List$filterMap,
-		function (sel) {
-			var _v1 = sel.mode;
-			if ((_v1.$ === 'SelectionSink') && _v1.a) {
-				return $elm$core$Maybe$Just(sel.rect);
-			} else {
-				return $elm$core$Maybe$Nothing;
-			}
-		},
-		$author$project$Zipper$toList(selections));
-	var _v0 = cDim;
-	var cWidth = _v0.a;
-	var cHeight = _v0.b;
-	var newRenders = $author$project$Util$trunc_tail(
-		A3(
-			$author$project$Util$iterCollect,
-			recSteps,
-			A4(
-				$author$project$Main$addRecursion2,
-				cWidth,
-				$author$project$Rect$getWidth(sourceRect),
-				A2($author$project$Rect$getC, $author$project$Rect$UL, sourceRect),
-				sinkRects),
-			_List_fromArray(
-				[sourceRender])));
-	return _Utils_update(
-		model,
-		{
-			renders: _Utils_ap(
-				renders,
-				$elm$core$List$concat(newRenders))
-		});
-};
-var $author$project$Main$updateRenders = function (model) {
-	return $author$project$Main$addRecursions2(
-		$author$project$Main$resetRenders(model));
-};
 var $elm$json$Json$Encode$null = _Json_encodeNull;
 var $author$project$Main$updateSource = _Platform_outgoingPort(
 	'updateSource',
@@ -6306,44 +6346,8 @@ var $author$project$Main$update = F2(
 						{blobUrl: blobUrl}));
 			case 'BlobLoaded':
 				var tex = msg.a;
-				if (tex.$ === 'Nothing') {
-					var _v11 = A2($elm$core$Debug$log, 'blob failed', _Utils_Tuple0);
-					return $author$project$Main$lm(model);
-				} else {
-					var t = tex.a;
-					var sourceRect = $author$project$Zipper$getFirst(model.selections).rect;
-					var _v12 = $joakin$elm_canvas$Canvas$Texture$dimensions(t);
-					var width = _v12.width;
-					var height = _v12.height;
-					var s = $author$project$Main$initialModel.cDim.a / width;
-					var newSource = A3(
-						$joakin$elm_canvas$Canvas$texture,
-						_List_fromArray(
-							[
-								$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
-								_List_fromArray(
-									[
-										A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, sourceRect.x1, sourceRect.y1),
-										A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
-									]))
-							]),
-						_Utils_Tuple2(0, 0),
-						A2(
-							$joakin$elm_canvas$Canvas$Texture$sprite,
-							{
-								height: $author$project$Rect$getHeight(sourceRect) / s,
-								width: $author$project$Rect$getWidth(sourceRect) / s,
-								x: sourceRect.x1 / s,
-								y: sourceRect.y1 / s
-							},
-							t));
-					var _v13 = A2($elm$core$Debug$log, 'blob!', t);
-					return $author$project$Main$lm(
-						$author$project$Main$updateRenders(
-							_Utils_update(
-								model,
-								{sourceRender: newSource})));
-				}
+				return $author$project$Main$lm(
+					A2($author$project$Main$changeSource, tex, model));
 			default:
 				var b = msg.a;
 				return $author$project$Main$lm(
@@ -6669,6 +6673,7 @@ var $author$project$Main$processRecSteps = function (s) {
 		return $author$project$Main$ChangeRecursion(i);
 	}
 };
+var $avh4$elm_color$Color$purple = A4($avh4$elm_color$Color$RgbaSpace, 117 / 255, 80 / 255, 123 / 255, 1.0);
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
@@ -7632,6 +7637,7 @@ var $elm$core$Debug$toString = _Debug_toString;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $avh4$elm_color$Color$white = A4($avh4$elm_color$Color$RgbaSpace, 255 / 255, 255 / 255, 255 / 255, 1.0);
+var $avh4$elm_color$Color$yellow = A4($avh4$elm_color$Color$RgbaSpace, 237 / 255, 212 / 255, 0 / 255, 1.0);
 var $author$project$Main$view = function (model) {
 	var tex = model.tex;
 	var renders = model.renders;
@@ -7978,7 +7984,132 @@ var $author$project$Main$view = function (model) {
 									A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
 									sourceRender
 								]),
-							grid))
+							grid)),
+						function () {
+						var rectSize = 2 * gridStep;
+						var origin = _Utils_Tuple2(2 * gridStep, 2 * gridStep);
+						var yl = A2(
+							$joakin$elm_canvas$Canvas$shapes,
+							_List_fromArray(
+								[
+									$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$yellow),
+									$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+									_List_fromArray(
+										[
+											A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 3, 3),
+											A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, gridStep, gridStep)
+										]))
+								]),
+							_List_fromArray(
+								[
+									A3($joakin$elm_canvas$Canvas$rect, origin, rectSize, rectSize)
+								]));
+						return A3(
+							$joakin$elm_canvas$Canvas$toHtml,
+							_Utils_Tuple2(cWidth, cHeight),
+							_List_Nil,
+							_Utils_ap(
+								_List_fromArray(
+									[
+										A2(
+										$joakin$elm_canvas$Canvas$shapes,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$red)
+											]),
+										_List_fromArray(
+											[
+												A3($joakin$elm_canvas$Canvas$rect, origin, rectSize, rectSize)
+											])),
+										A2(
+										$joakin$elm_canvas$Canvas$shapes,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$purple),
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 2, 2)
+													]))
+											]),
+										_List_fromArray(
+											[
+												A3($joakin$elm_canvas$Canvas$rect, origin, rectSize, rectSize)
+											])),
+										A2(
+										$joakin$elm_canvas$Canvas$shapes,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$green),
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, gridStep, gridStep)
+													]))
+											]),
+										_List_fromArray(
+											[
+												A3($joakin$elm_canvas$Canvas$rect, origin, rectSize, rectSize)
+											])),
+										A2(
+										$joakin$elm_canvas$Canvas$shapes,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$blue),
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, gridStep, gridStep),
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 2, 2)
+													]))
+											]),
+										_List_fromArray(
+											[
+												A3($joakin$elm_canvas$Canvas$rect, origin, rectSize, rectSize)
+											])),
+										yl,
+										A2(
+										$joakin$elm_canvas$Canvas$group,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, 0, 5 * gridStep),
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 0.5, 0.5)
+													]))
+											]),
+										_List_fromArray(
+											[yl])),
+										A2(
+										$joakin$elm_canvas$Canvas$group,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 0.5, 0.5),
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, 0, (-5) * gridStep)
+													]))
+											]),
+										_List_fromArray(
+											[yl])),
+										A2(
+										$joakin$elm_canvas$Canvas$group,
+										_List_fromArray(
+											[
+												$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+												_List_fromArray(
+													[
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, -gridStep, -gridStep),
+														A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, 1 / 3, 1 / 3)
+													]))
+											]),
+										_List_fromArray(
+											[yl]))
+									]),
+								grid));
+					}()
 					]))
 			]));
 };
