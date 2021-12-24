@@ -5277,113 +5277,40 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
+var $author$project$Rect$SelectionSink = function (a) {
+	return {$: 'SelectionSink', a: a};
+};
+var $author$project$Rect$SelectionSource = {$: 'SelectionSource'};
 var $avh4$elm_color$Color$RgbaSpace = F4(
 	function (a, b, c, d) {
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
 	});
+var $avh4$elm_color$Color$black = A4($avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
 var $avh4$elm_color$Color$blue = A4($avh4$elm_color$Color$RgbaSpace, 52 / 255, 101 / 255, 164 / 255, 1.0);
-var $avh4$elm_color$Color$green = A4($avh4$elm_color$Color$RgbaSpace, 115 / 255, 210 / 255, 22 / 255, 1.0);
-var $author$project$Zipper$map = F2(
-	function (f, _v0) {
-		var prev = _v0.prev;
-		var focus = _v0.focus;
-		var next = _v0.next;
-		return {
-			focus: f(focus),
-			next: A2($elm$core$List$map, f, next),
-			prev: A2($elm$core$List$map, f, prev)
-		};
-	});
-var $elm$core$Basics$min = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) < 0) ? x : y;
-	});
-var $author$project$Rect$mkRect = F2(
-	function (_v0, _v1) {
-		var x1 = _v0.a;
-		var y1 = _v0.b;
-		var x2 = _v1.a;
-		var y2 = _v1.b;
-		return {
-			x1: A2($elm$core$Basics$min, x1, x2),
-			x2: A2($elm$core$Basics$max, x1, x2),
-			y1: A2($elm$core$Basics$min, y1, y2),
-			y2: A2($elm$core$Basics$max, y1, y2)
-		};
-	});
-var $elm$core$Basics$negate = function (n) {
-	return -n;
+var $joakin$elm_canvas$Canvas$Internal$Canvas$Fill = function (a) {
+	return {$: 'Fill', a: a};
 };
-var $author$project$Rect$origin = _Utils_Tuple2(-1, -1);
-var $author$project$Rect$mkSelection = function (c) {
-	return {
-		color: c,
-		isActive: false,
-		rect: A2($author$project$Rect$mkRect, $author$project$Rect$origin, $author$project$Rect$origin)
-	};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp = function (a) {
+	return {$: 'SettingDrawOp', a: a};
 };
-var $author$project$Zipper$mkZipper = F2(
-	function (x, l) {
-		return {focus: x, next: l, prev: _List_Nil};
+var $joakin$elm_canvas$Canvas$Settings$fill = function (color) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp(
+		$joakin$elm_canvas$Canvas$Internal$Canvas$Fill(color));
+};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$Rect = F3(
+	function (a, b, c) {
+		return {$: 'Rect', a: a, b: b, c: c};
 	});
-var $avh4$elm_color$Color$orange = A4($avh4$elm_color$Color$RgbaSpace, 245 / 255, 121 / 255, 0 / 255, 1.0);
-var $avh4$elm_color$Color$red = A4($avh4$elm_color$Color$RgbaSpace, 204 / 255, 0 / 255, 0 / 255, 1.0);
-var $author$project$Main$initialModel = function () {
-	var colors = A2(
-		$author$project$Zipper$mkZipper,
-		$avh4$elm_color$Color$red,
-		_List_fromArray(
-			[$avh4$elm_color$Color$green, $avh4$elm_color$Color$blue, $avh4$elm_color$Color$orange]));
-	var selections = A2($author$project$Zipper$map, $author$project$Rect$mkSelection, colors);
-	return {
-		cDim: _Utils_Tuple2(400, 400),
-		dragging: false,
-		initialRenders: _List_Nil,
-		recSteps: 1,
-		renders: _List_Nil,
-		selections: selections,
-		tex: $elm$core$Maybe$Nothing,
-		url: ''
-	};
-}();
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Main$LoadTex = function (a) {
-	return {$: 'LoadTex', a: a};
-};
-var $author$project$Zipper$Next = {$: 'Next'};
-var $author$project$Zipper$Prev = {$: 'Prev'};
-var $author$project$Rect$deactivate = function (s) {
-	return _Utils_update(
-		s,
-		{isActive: false});
-};
-var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
-	if (texture.$ === 'TImage') {
-		var image = texture.a;
-		return {height: image.height, width: image.width};
-	} else {
-		var data = texture.a;
-		return {height: data.height, width: data.width};
-	}
-};
-var $joakin$elm_canvas$Canvas$Settings$Advanced$Scale = F2(
-	function (a, b) {
-		return {$: 'Scale', a: a, b: b};
+var $joakin$elm_canvas$Canvas$rect = F3(
+	function (pos, width, height) {
+		return A3($joakin$elm_canvas$Canvas$Internal$Canvas$Rect, pos, width, height);
 	});
-var $joakin$elm_canvas$Canvas$Settings$Advanced$scale = $joakin$elm_canvas$Canvas$Settings$Advanced$Scale;
-var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableTexture = F2(
-	function (a, b) {
-		return {$: 'DrawableTexture', a: a, b: b};
-	});
+var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableShapes = function (a) {
+	return {$: 'DrawableShapes', a: a};
+};
 var $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified = {$: 'NotSpecified'};
 var $joakin$elm_canvas$Canvas$Internal$Canvas$Renderable = function (a) {
 	return {$: 'Renderable', a: a};
-};
-var $joakin$elm_canvas$Canvas$Internal$Canvas$Fill = function (a) {
-	return {$: 'Fill', a: a};
 };
 var $joakin$elm_canvas$Canvas$Internal$Canvas$FillAndStroke = F2(
 	function (a, b) {
@@ -5491,6 +5418,198 @@ var $joakin$elm_canvas$Canvas$addSettingsToRenderable = F2(
 					}());
 			});
 		return A3($elm$core$List$foldl, addSetting, renderable, settings);
+	});
+var $joakin$elm_canvas$Canvas$shapes = F2(
+	function (settings, ss) {
+		return A2(
+			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
+			settings,
+			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
+				{
+					commands: _List_Nil,
+					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
+					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableShapes(ss)
+				}));
+	});
+var $author$project$Main$clearCanvas = F2(
+	function (_v0, color) {
+		var w = _v0.a;
+		var h = _v0.b;
+		return A2(
+			$joakin$elm_canvas$Canvas$shapes,
+			_List_fromArray(
+				[
+					$joakin$elm_canvas$Canvas$Settings$fill(color)
+				]),
+			_List_fromArray(
+				[
+					A3(
+					$joakin$elm_canvas$Canvas$rect,
+					_Utils_Tuple2(0, 0),
+					w,
+					h)
+				]));
+	});
+var $avh4$elm_color$Color$green = A4($avh4$elm_color$Color$RgbaSpace, 115 / 255, 210 / 255, 22 / 255, 1.0);
+var $avh4$elm_color$Color$lightGrey = A4($avh4$elm_color$Color$RgbaSpace, 238 / 255, 238 / 255, 236 / 255, 1.0);
+var $author$project$Rect$mkSelection = F3(
+	function (color, mode, initialRect) {
+		return {color: color, initialRect: initialRect, mode: mode, rect: initialRect};
+	});
+var $author$project$Zipper$mkZipper = F2(
+	function (x, l) {
+		return {focus: x, next: l, prev: _List_Nil};
+	});
+var $avh4$elm_color$Color$orange = A4($avh4$elm_color$Color$RgbaSpace, 245 / 255, 121 / 255, 0 / 255, 1.0);
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $author$project$Rect$mkRect = F2(
+	function (_v0, _v1) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
+		var x2 = _v1.a;
+		var y2 = _v1.b;
+		return {
+			x1: A2($elm$core$Basics$min, x1, x2),
+			x2: A2($elm$core$Basics$max, x1, x2),
+			y1: A2($elm$core$Basics$min, y1, y2),
+			y2: A2($elm$core$Basics$max, y1, y2)
+		};
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $author$project$Rect$origin = _Utils_Tuple2(-1, -1);
+var $author$project$Rect$rectEmpty = A2($author$project$Rect$mkRect, $author$project$Rect$origin, $author$project$Rect$origin);
+var $avh4$elm_color$Color$red = A4($avh4$elm_color$Color$RgbaSpace, 204 / 255, 0 / 255, 0 / 255, 1.0);
+var $author$project$Main$initialModel = function () {
+	var sourceSel = A3($author$project$Rect$mkSelection, $avh4$elm_color$Color$black, $author$project$Rect$SelectionSource, $author$project$Rect$rectEmpty);
+	var sinkSels = A2(
+		$elm$core$List$map,
+		function (c) {
+			return A3(
+				$author$project$Rect$mkSelection,
+				c,
+				$author$project$Rect$SelectionSink(false),
+				$author$project$Rect$rectEmpty);
+		},
+		_List_fromArray(
+			[$avh4$elm_color$Color$red, $avh4$elm_color$Color$green, $avh4$elm_color$Color$blue, $avh4$elm_color$Color$orange]));
+	var selections = A2($author$project$Zipper$mkZipper, sourceSel, sinkSels);
+	var canvasDim = _Utils_Tuple2(400, 400);
+	return {
+		aspectM: $elm$core$Maybe$Nothing,
+		cDim: canvasDim,
+		dragging: false,
+		initialRender: A2($author$project$Main$clearCanvas, canvasDim, $avh4$elm_color$Color$lightGrey),
+		recSteps: 1,
+		renders: _List_Nil,
+		selections: selections,
+		tex: $elm$core$Maybe$Nothing,
+		url: ''
+	};
+}();
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$LoadTex = function (a) {
+	return {$: 'LoadTex', a: a};
+};
+var $author$project$Zipper$Next = {$: 'Next'};
+var $author$project$Zipper$Prev = {$: 'Prev'};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
+var $author$project$Rect$setActive = F2(
+	function (b, mode) {
+		if (mode.$ === 'SelectionSource') {
+			return $author$project$Rect$SelectionSource;
+		} else {
+			return $author$project$Rect$SelectionSink(b);
+		}
+	});
+var $author$project$Rect$deactivate = function (sel) {
+	return _Utils_update(
+		sel,
+		{
+			mode: A2($author$project$Rect$setActive, false, sel.mode),
+			rect: sel.initialRect
+		});
+};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup = function (a) {
+	return {$: 'DrawableGroup', a: a};
+};
+var $joakin$elm_canvas$Canvas$group = F2(
+	function (settings, entities) {
+		return A2(
+			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
+			settings,
+			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
+				{
+					commands: _List_Nil,
+					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
+					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
+				}));
+	});
+var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
+	if (texture.$ === 'TImage') {
+		var image = texture.a;
+		return {height: image.height, width: image.width};
+	} else {
+		var data = texture.a;
+		return {height: data.height, width: data.width};
+	}
+};
+var $author$project$Zipper$modify = F2(
+	function (f, z) {
+		return _Utils_update(
+			z,
+			{
+				focus: f(z.focus)
+			});
+	});
+var $joakin$elm_canvas$Canvas$Settings$Advanced$Scale = F2(
+	function (a, b) {
+		return {$: 'Scale', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Settings$Advanced$scale = $joakin$elm_canvas$Canvas$Settings$Advanced$Scale;
+var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableTexture = F2(
+	function (a, b) {
+		return {$: 'DrawableTexture', a: a, b: b};
 	});
 var $joakin$elm_canvas$Canvas$texture = F3(
 	function (settings, p, t) {
@@ -5632,6 +5751,19 @@ var $author$project$Main$initRenders = F2(
 			var width = _v1.width;
 			var height = _v1.height;
 			var s = $author$project$Main$initialModel.cDim.a / width;
+			var cDim = _Utils_Tuple2(s * width, s * height);
+			var canvasRect = A2(
+				$author$project$Rect$mkRect,
+				_Utils_Tuple2(0, 0),
+				cDim);
+			var selections = A2(
+				$author$project$Zipper$modify,
+				function (sel) {
+					return _Utils_update(
+						sel,
+						{initialRect: canvasRect, rect: canvasRect});
+				},
+				$author$project$Main$initialModel.selections);
 			var newtex = A3(
 				$joakin$elm_canvas$Canvas$texture,
 				_List_fromArray(
@@ -5647,11 +5779,11 @@ var $author$project$Main$initRenders = F2(
 			return _Utils_update(
 				$author$project$Main$initialModel,
 				{
-					cDim: _Utils_Tuple2(s * width, s * height),
-					initialRenders: _List_fromArray(
-						[newtex]),
+					cDim: cDim,
+					initialRender: newtex,
 					renders: _List_fromArray(
 						[newtex]),
+					selections: selections,
 					tex: tex,
 					url: model.url
 				});
@@ -5661,13 +5793,16 @@ var $author$project$Main$lm = function (m) {
 	return _Utils_Tuple2(m, $elm$core$Platform$Cmd$none);
 };
 var $elm$core$Debug$log = _Debug_log;
-var $author$project$Zipper$modify = F2(
-	function (f, z) {
-		return _Utils_update(
-			z,
-			{
-				focus: f(z.focus)
-			});
+var $author$project$Zipper$map = F2(
+	function (f, _v0) {
+		var prev = _v0.prev;
+		var focus = _v0.focus;
+		var next = _v0.next;
+		return {
+			focus: f(focus),
+			next: A2($elm$core$List$map, f, next),
+			prev: A2($elm$core$List$map, f, prev)
+		};
 	});
 var $author$project$Zipper$move = F2(
 	function (m, z) {
@@ -5707,30 +5842,45 @@ var $author$project$Zipper$move = F2(
 var $author$project$Main$resetRenders = function (model) {
 	return _Utils_update(
 		model,
-		{renders: model.initialRenders});
+		{
+			renders: _List_fromArray(
+				[model.initialRender])
+		});
 };
 var $author$project$Rect$selDown = F2(
-	function (_v0, sel) {
-		var x = _v0.a;
-		var y = _v0.b;
+	function (p, sel) {
 		return _Utils_update(
 			sel,
 			{
-				isActive: true,
-				rect: {x1: x, x2: x, y1: y, y2: y}
+				mode: A2($author$project$Rect$setActive, true, sel.mode),
+				rect: A2($author$project$Rect$mkRect, p, p)
 			});
 	});
+var $author$project$Rect$selIsCleared = function (_v0) {
+	var rect = _v0.rect;
+	var initialRect = _v0.initialRect;
+	return _Utils_eq(rect, initialRect);
+};
 var $author$project$Rect$selMove = F2(
 	function (_v0, sel) {
 		var x2 = _v0.a;
 		var y2 = _v0.b;
-		var newRect = {x1: sel.rect.x1, x2: x2, y1: sel.rect.y1, y2: y2};
+		var rect = sel.rect;
 		return _Utils_update(
 			sel,
-			{rect: newRect});
+			{
+				rect: _Utils_update(
+					rect,
+					{x2: x2, y2: y2})
+			});
 	});
-var $author$project$Rect$selUp = function (sel) {
-	return sel;
+var $author$project$Zipper$toList = function (_v0) {
+	var prev = _v0.prev;
+	var focus = _v0.focus;
+	var next = _v0.next;
+	return _Utils_ap(
+		$elm$core$List$reverse(prev),
+		A2($elm$core$List$cons, focus, next));
 };
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
@@ -5739,6 +5889,32 @@ var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$file$File$toUrl = _File_toUrl;
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
+};
+var $author$project$Rect$getHeight = function (_v0) {
+	var y1 = _v0.y1;
+	var y2 = _v0.y2;
+	return $elm$core$Basics$abs(y2 - y1);
+};
+var $author$project$Rect$getWidth = function (_v0) {
+	var x1 = _v0.x1;
+	var x2 = _v0.x2;
+	return $elm$core$Basics$abs(x2 - x1);
+};
+var $author$project$Rect$getAspect = function (r) {
+	return $author$project$Rect$getWidth(r) / $author$project$Rect$getHeight(r);
+};
+var $author$project$Zipper$getFocus = function (_v0) {
+	var focus = _v0.focus;
+	return focus;
+};
+var $author$project$Rect$selIsActive = function (sel) {
+	var _v0 = sel.mode;
+	if (_v0.$ === 'SelectionSource') {
+		return true;
+	} else {
+		var b = _v0.a;
+		return b;
+	}
 };
 var $author$project$Rect$mkRectDim = F2(
 	function (_v0, _v1) {
@@ -5776,37 +5952,44 @@ var $author$project$Rect$fitRectAspect = F2(
 			_Utils_Tuple2(x1, y1),
 			_Utils_Tuple2(dXRefl, dY));
 	});
-var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup = function (a) {
-	return {$: 'DrawableGroup', a: a};
-};
-var $joakin$elm_canvas$Canvas$group = F2(
-	function (settings, entities) {
-		return A2(
-			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
-			settings,
-			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
-				{
-					commands: _List_Nil,
-					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
-					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
-				}));
+var $author$project$Rect$selUp = F2(
+	function (aspectM, sel) {
+		if (($author$project$Rect$getWidth(sel.rect) < 1) || ($author$project$Rect$getHeight(sel.rect) < 1)) {
+			return $author$project$Rect$deactivate(sel);
+		} else {
+			var aspectRect = function () {
+				if (aspectM.$ === 'Nothing') {
+					return sel.rect;
+				} else {
+					var aspect = aspectM.a;
+					return A2($author$project$Rect$fitRectAspect, aspect, sel.rect);
+				}
+			}();
+			return _Utils_update(
+				sel,
+				{rect: aspectRect});
+		}
 	});
+var $author$project$Rect$UL = {$: 'UL'};
 var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
 	function (a, b) {
 		return {$: 'Translate', a: a, b: b};
 	});
 var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
-var $author$project$Rect$width = function (_v0) {
-	var x1 = _v0.x1;
-	var x2 = _v0.x2;
-	return x2 - x1;
-};
-var $author$project$Main$addRecursion2 = F3(
-	function (_v0, rects, renders) {
-		var cWidth = _v0.a;
-		var cHeight = _v0.b;
+var $author$project$Main$addRecursion2 = F4(
+	function (width, _v0, rects, renders) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
 		var copy = function (r) {
-			var s = $author$project$Rect$width(r) / cWidth;
+			var s = $author$project$Rect$getWidth(r) / width;
+			var _v1 = A2(
+				$elm$core$Debug$log,
+				'(x1, y1) = ',
+				_Utils_Tuple2(x1, y1));
+			var _v2 = A2(
+				$elm$core$Debug$log,
+				'r.(x1, y1) = ',
+				_Utils_Tuple2(r.x1, r.y1));
 			return A2(
 				$joakin$elm_canvas$Canvas$group,
 				_List_fromArray(
@@ -5814,18 +5997,13 @@ var $author$project$Main$addRecursion2 = F3(
 						$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
 						_List_fromArray(
 							[
-								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1, r.y1),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1 - x1, r.y1 - y1),
 								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
 							]))
 					]),
 				renders);
 		};
-		var aspect = cWidth / cHeight;
-		var aspectRects = A2(
-			$elm$core$List$map,
-			$author$project$Rect$fitRectAspect(aspect),
-			rects);
-		var newRenders = A2($elm$core$List$map, copy, aspectRects);
+		var newRenders = A2($elm$core$List$map, copy, rects);
 		return newRenders;
 	});
 var $elm$core$List$append = F2(
@@ -5857,6 +6035,34 @@ var $elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
+var $author$project$Rect$getC = F2(
+	function (c, _v0) {
+		var x1 = _v0.x1;
+		var y1 = _v0.y1;
+		var x2 = _v0.x2;
+		var y2 = _v0.y2;
+		switch (c.$) {
+			case 'UL':
+				return _Utils_Tuple2(x1, y1);
+			case 'UR':
+				return _Utils_Tuple2(x2, y1);
+			case 'LL':
+				return _Utils_Tuple2(x1, y2);
+			default:
+				return _Utils_Tuple2(x2, y2);
+		}
+	});
+var $author$project$Zipper$getFirst = function (_v0) {
+	var prev = _v0.prev;
+	var focus = _v0.focus;
+	var _v1 = $elm$core$List$reverse(prev);
+	if (!_v1.b) {
+		return focus;
+	} else {
+		var fst = _v1.a;
+		return fst;
+	}
+};
 var $author$project$Util$iterCollect = F3(
 	function (n, f, x) {
 		if (n > 0) {
@@ -5870,14 +6076,6 @@ var $author$project$Util$iterCollect = F3(
 				[x]);
 		}
 	});
-var $author$project$Zipper$toList = function (_v0) {
-	var prev = _v0.prev;
-	var focus = _v0.focus;
-	var next = _v0.next;
-	return _Utils_ap(
-		$elm$core$List$reverse(prev),
-		A2($elm$core$List$cons, focus, next));
-};
 var $author$project$Util$trunc_tail = function (l) {
 	if (!l.b) {
 		return _List_Nil;
@@ -5887,23 +6085,38 @@ var $author$project$Util$trunc_tail = function (l) {
 	}
 };
 var $author$project$Main$addRecursions2 = function (model) {
-	var initialRenders = model.initialRenders;
+	var initialRender = model.initialRender;
 	var renders = model.renders;
 	var cDim = model.cDim;
 	var selections = model.selections;
 	var recSteps = model.recSteps;
-	var activeRects = A2(
+	var sourceRender = initialRender;
+	var sourceRect = $author$project$Zipper$getFirst(selections).rect;
+	var sinkRects = A2(
 		$elm$core$List$filterMap,
-		function (s) {
-			return s.isActive ? $elm$core$Maybe$Just(s.rect) : $elm$core$Maybe$Nothing;
+		function (sel) {
+			var _v1 = sel.mode;
+			if ((_v1.$ === 'SelectionSink') && _v1.a) {
+				return $elm$core$Maybe$Just(sel.rect);
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
 		},
 		$author$project$Zipper$toList(selections));
 	var newRenders = $author$project$Util$trunc_tail(
 		A3(
 			$author$project$Util$iterCollect,
 			recSteps,
-			A2($author$project$Main$addRecursion2, cDim, activeRects),
-			initialRenders));
+			A3(
+				$author$project$Main$addRecursion2,
+				$author$project$Rect$getWidth(sourceRect),
+				A2($author$project$Rect$getC, $author$project$Rect$UL, sourceRect),
+				sinkRects),
+			_List_fromArray(
+				[sourceRender])));
+	var _v0 = cDim;
+	var cWidth = _v0.a;
+	var cHeight = _v0.b;
 	return _Utils_update(
 		model,
 		{
@@ -5915,6 +6128,31 @@ var $author$project$Main$addRecursions2 = function (model) {
 var $author$project$Main$updateRenders = function (model) {
 	return $author$project$Main$addRecursions2(
 		$author$project$Main$resetRenders(model));
+};
+var $author$project$Main$upSelection = function (model) {
+	var selections = A2(
+		$author$project$Zipper$modify,
+		$author$project$Rect$selUp(model.aspectM),
+		model.selections);
+	var focusSel = $author$project$Zipper$getFocus(selections);
+	var aspectM = function () {
+		var _v0 = model.aspectM;
+		if (_v0.$ === 'Just') {
+			return model.aspectM;
+		} else {
+			if ($author$project$Rect$selIsActive(focusSel)) {
+				var _v1 = A2($elm$core$Debug$log, 'set new aspect', _Utils_Tuple0);
+				return $elm$core$Maybe$Just(
+					$author$project$Rect$getAspect(focusSel.rect));
+			} else {
+				return $elm$core$Maybe$Nothing;
+			}
+		}
+	}();
+	return $author$project$Main$updateRenders(
+		_Utils_update(
+			model,
+			{aspectM: aspectM, dragging: false, selections: selections}));
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -5948,13 +6186,7 @@ var $author$project$Main$update = F2(
 						})) : $author$project$Main$lm(model);
 			case 'UpMsg':
 				return $author$project$Main$lm(
-					$author$project$Main$updateRenders(
-						_Utils_update(
-							model,
-							{
-								dragging: false,
-								selections: A2($author$project$Zipper$modify, $author$project$Rect$selUp, model.selections)
-							})));
+					$author$project$Main$upSelection(model));
 			case 'LoadTex':
 				var url = msg.a;
 				var _v1 = A2($elm$core$Debug$log, 'url:', url);
@@ -5987,9 +6219,13 @@ var $author$project$Main$update = F2(
 			case 'Stamp':
 				var selections = A2($author$project$Zipper$map, $author$project$Rect$deactivate, model.selections);
 				return $author$project$Main$lm(
-					_Utils_update(
-						model,
-						{initialRenders: model.renders, selections: selections}));
+					$author$project$Main$updateRenders(
+						_Utils_update(
+							model,
+							{
+								initialRender: A2($joakin$elm_canvas$Canvas$group, _List_Nil, model.renders),
+								selections: selections
+							})));
 			case 'PrevSelection':
 				var _v5 = A2($author$project$Zipper$move, $author$project$Zipper$Prev, model.selections);
 				var selections = _v5.a;
@@ -6005,15 +6241,37 @@ var $author$project$Main$update = F2(
 						model,
 						{selections: selections}));
 			default:
-				var selections = A2($author$project$Zipper$modify, $author$project$Rect$deactivate, model.selections);
+				var ca = msg.a;
+				var selections = function () {
+					if (ca.$ === 'ClearOne') {
+						return A2($author$project$Zipper$modify, $author$project$Rect$deactivate, model.selections);
+					} else {
+						return A2($author$project$Zipper$map, $author$project$Rect$deactivate, model.selections);
+					}
+				}();
+				var aspectM = function () {
+					if (A2(
+						$elm$core$List$all,
+						$author$project$Rect$selIsCleared,
+						$author$project$Zipper$toList(selections))) {
+						var _v7 = A2($elm$core$Debug$log, 'all clear', _Utils_Tuple0);
+						return $elm$core$Maybe$Nothing;
+					} else {
+						return model.aspectM;
+					}
+				}();
 				return $author$project$Main$lm(
 					$author$project$Main$updateRenders(
 						_Utils_update(
 							model,
-							{selections: selections})));
+							{aspectM: aspectM, selections: selections})));
 		}
 	});
-var $author$project$Main$ClearSelection = {$: 'ClearSelection'};
+var $author$project$Main$ClearAll = {$: 'ClearAll'};
+var $author$project$Main$ClearOne = {$: 'ClearOne'};
+var $author$project$Main$ClearSelection = function (a) {
+	return {$: 'ClearSelection', a: a};
+};
 var $author$project$Main$DownMsg = function (a) {
 	return {$: 'DownMsg', a: a};
 };
@@ -6028,56 +6286,14 @@ var $author$project$Main$TextureLoaded = function (a) {
 };
 var $author$project$Main$UpMsg = {$: 'UpMsg'};
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp = function (a) {
-	return {$: 'SettingDrawOp', a: a};
-};
-var $joakin$elm_canvas$Canvas$Settings$fill = function (color) {
-	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp(
-		$joakin$elm_canvas$Canvas$Internal$Canvas$Fill(color));
-};
-var $avh4$elm_color$Color$grey = A4($avh4$elm_color$Color$RgbaSpace, 211 / 255, 215 / 255, 207 / 255, 1.0);
-var $joakin$elm_canvas$Canvas$Internal$Canvas$Rect = F3(
-	function (a, b, c) {
-		return {$: 'Rect', a: a, b: b, c: c};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$Circle = F2(
+	function (a, b) {
+		return {$: 'Circle', a: a, b: b};
 	});
-var $joakin$elm_canvas$Canvas$rect = F3(
-	function (pos, width, height) {
-		return A3($joakin$elm_canvas$Canvas$Internal$Canvas$Rect, pos, width, height);
+var $joakin$elm_canvas$Canvas$circle = F2(
+	function (pos, radius) {
+		return A2($joakin$elm_canvas$Canvas$Internal$Canvas$Circle, pos, radius);
 	});
-var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableShapes = function (a) {
-	return {$: 'DrawableShapes', a: a};
-};
-var $joakin$elm_canvas$Canvas$shapes = F2(
-	function (settings, ss) {
-		return A2(
-			$joakin$elm_canvas$Canvas$addSettingsToRenderable,
-			settings,
-			$joakin$elm_canvas$Canvas$Internal$Canvas$Renderable(
-				{
-					commands: _List_Nil,
-					drawOp: $joakin$elm_canvas$Canvas$Internal$Canvas$NotSpecified,
-					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableShapes(ss)
-				}));
-	});
-var $author$project$Main$clearScreen = function (model) {
-	var _v0 = model.cDim;
-	var cWidth = _v0.a;
-	var cHeight = _v0.b;
-	return A2(
-		$joakin$elm_canvas$Canvas$shapes,
-		_List_fromArray(
-			[
-				$joakin$elm_canvas$Canvas$Settings$fill($avh4$elm_color$Color$grey)
-			]),
-		_List_fromArray(
-			[
-				A3(
-				$joakin$elm_canvas$Canvas$rect,
-				_Utils_Tuple2(0, 0),
-				cWidth,
-				cHeight)
-			]));
-};
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$at = F2(
@@ -6092,7 +6308,31 @@ var $author$project$Main$filesDecoder = A2(
 		['target', 'files']),
 	$elm$json$Json$Decode$list($elm$file$File$decoder));
 var $elm$html$Html$input = _VirtualDom_node('input');
-var $elm$html$Html$label = _VirtualDom_node('label');
+var $author$project$Zipper$length = function (_v0) {
+	var prev = _v0.prev;
+	var next = _v0.next;
+	return ($elm$core$List$length(prev) + $elm$core$List$length(next)) + 1;
+};
+var $author$project$Util$list_mapi = F2(
+	function (f, l) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (a, _v0) {
+					var bs = _v0.a;
+					var n = _v0.b;
+					return _Utils_Tuple2(
+						_Utils_ap(
+							bs,
+							_List_fromArray(
+								[
+									A2(f, n, a)
+								])),
+						n + 1);
+				}),
+			_Utils_Tuple2(_List_Nil, 0),
+			l).a;
+	});
 var $joakin$elm_canvas$Canvas$Internal$Texture$TSImageUrl = F2(
 	function (a, b) {
 		return {$: 'TSImageUrl', a: a, b: b};
@@ -6308,30 +6548,74 @@ var $elm$core$List$concatMap = F2(
 	});
 var $author$project$Rect$LL = {$: 'LL'};
 var $author$project$Rect$LR = {$: 'LR'};
-var $author$project$Rect$UL = {$: 'UL'};
+var $joakin$elm_canvas$Canvas$Settings$Line$RoundJoin = {$: 'RoundJoin'};
 var $author$project$Rect$UR = {$: 'UR'};
-var $author$project$Rect$getC = F2(
-	function (_v0, c) {
-		var x1 = _v0.x1;
-		var y1 = _v0.y1;
-		var x2 = _v0.x2;
-		var y2 = _v0.y2;
-		switch (c.$) {
-			case 'UL':
-				return _Utils_Tuple2(x1, y1);
-			case 'UR':
-				return _Utils_Tuple2(x2, y1);
-			case 'LL':
-				return _Utils_Tuple2(x1, y2);
-			default:
-				return _Utils_Tuple2(x2, y2);
-		}
+var $joakin$elm_canvas$Canvas$Internal$Canvas$SettingCommand = function (a) {
+	return {$: 'SettingCommand', a: a};
+};
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$setLineDash = function (segments) {
+	return A2(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$fn,
+		'setLineDash',
+		_List_fromArray(
+			[
+				A2($elm$json$Json$Encode$list, $elm$json$Json$Encode$float, segments)
+			]));
+};
+var $joakin$elm_canvas$Canvas$Settings$Line$lineDash = function (dashSettings) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingCommand(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$setLineDash(dashSettings));
+};
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field = F2(
+	function (name, value) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'type',
+					$elm$json$Json$Encode$string('field')),
+					_Utils_Tuple2(
+					'name',
+					$elm$json$Json$Encode$string(name)),
+					_Utils_Tuple2('value', value)
+				]));
 	});
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineJoin = function (join) {
+	return A2(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field,
+		'lineJoin',
+		$elm$json$Json$Encode$string(join));
+};
+var $joakin$elm_canvas$Canvas$Settings$Line$lineJoinToString = function (join) {
+	switch (join.$) {
+		case 'BevelJoin':
+			return 'bevel';
+		case 'RoundJoin':
+			return 'round';
+		default:
+			return 'miter';
+	}
+};
+var $joakin$elm_canvas$Canvas$Settings$Line$lineJoin = function (join) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingCommand(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineJoin(
+			$joakin$elm_canvas$Canvas$Settings$Line$lineJoinToString(join)));
+};
 var $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo = function (a) {
 	return {$: 'LineTo', a: a};
 };
 var $joakin$elm_canvas$Canvas$lineTo = function (point) {
 	return $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo(point);
+};
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineWidth = function (value) {
+	return A2(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field,
+		'lineWidth',
+		$elm$json$Json$Encode$float(value));
+};
+var $joakin$elm_canvas$Canvas$Settings$Line$lineWidth = function (width) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingCommand(
+		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineWidth(width));
 };
 var $joakin$elm_canvas$Canvas$Internal$Canvas$Path = F2(
 	function (a, b) {
@@ -6346,42 +6630,80 @@ var $joakin$elm_canvas$Canvas$Settings$stroke = function (color) {
 		$joakin$elm_canvas$Canvas$Internal$Canvas$Stroke(color));
 };
 var $author$project$Rect$renderSelection = F2(
-	function (aspect, _v0) {
-		var rect = _v0.rect;
-		var color = _v0.color;
-		var isActive = _v0.isActive;
-		var aspectRect = A2($author$project$Rect$fitRectAspect, aspect, rect);
-		return isActive ? _List_fromArray(
-			[
-				A2(
-				$joakin$elm_canvas$Canvas$shapes,
-				_List_fromArray(
-					[
-						$joakin$elm_canvas$Canvas$Settings$stroke(color)
-					]),
-				_List_fromArray(
+	function (aspectM, sel) {
+		var rect = function () {
+			if (aspectM.$ === 'Nothing') {
+				return sel.rect;
+			} else {
+				var aspect = aspectM.a;
+				return A2($author$project$Rect$fitRectAspect, aspect, sel.rect);
+			}
+		}();
+		var _v0 = sel.mode;
+		if (_v0.$ === 'SelectionSource') {
+			return _List_fromArray(
+				[
+					A2(
+					$joakin$elm_canvas$Canvas$shapes,
+					_List_fromArray(
+						[
+							$joakin$elm_canvas$Canvas$Settings$stroke(sel.color),
+							$joakin$elm_canvas$Canvas$Settings$Line$lineWidth(2),
+							$joakin$elm_canvas$Canvas$Settings$Line$lineJoin($joakin$elm_canvas$Canvas$Settings$Line$RoundJoin)
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$joakin$elm_canvas$Canvas$path,
+							A2($author$project$Rect$getC, $author$project$Rect$UL, rect),
+							A2(
+								$elm$core$List$map,
+								function (c) {
+									return $joakin$elm_canvas$Canvas$lineTo(
+										A2($author$project$Rect$getC, c, rect));
+								},
+								_List_fromArray(
+									[$author$project$Rect$LL, $author$project$Rect$LR, $author$project$Rect$UR, $author$project$Rect$UL, $author$project$Rect$LL])))
+						]))
+				]);
+		} else {
+			if (_v0.a) {
+				return _List_fromArray(
 					[
 						A2(
-						$joakin$elm_canvas$Canvas$path,
-						A2($author$project$Rect$getC, aspectRect, $author$project$Rect$UL),
-						A2(
-							$elm$core$List$map,
-							function (c) {
-								return $joakin$elm_canvas$Canvas$lineTo(
-									A2($author$project$Rect$getC, aspectRect, c));
-							},
-							_List_fromArray(
-								[$author$project$Rect$LL, $author$project$Rect$LR, $author$project$Rect$UR, $author$project$Rect$UL])))
-					]))
-			]) : _List_Nil;
+						$joakin$elm_canvas$Canvas$shapes,
+						_List_fromArray(
+							[
+								$joakin$elm_canvas$Canvas$Settings$stroke(sel.color),
+								$joakin$elm_canvas$Canvas$Settings$Line$lineDash(
+								_List_fromArray(
+									[5]))
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$joakin$elm_canvas$Canvas$path,
+								A2($author$project$Rect$getC, $author$project$Rect$UL, rect),
+								A2(
+									$elm$core$List$map,
+									function (c) {
+										return $joakin$elm_canvas$Canvas$lineTo(
+											A2($author$project$Rect$getC, c, rect));
+									},
+									_List_fromArray(
+										[$author$project$Rect$LL, $author$project$Rect$LR, $author$project$Rect$UR, $author$project$Rect$UL, $author$project$Rect$LL])))
+							]))
+					]);
+			} else {
+				return _List_Nil;
+			}
+		}
 	});
 var $author$project$Main$renderSelections = F2(
-	function (_v0, selections) {
-		var cWidth = _v0.a;
-		var cHeight = _v0.b;
+	function (aspectM, selections) {
 		return A2(
 			$elm$core$List$concatMap,
-			$author$project$Rect$renderSelection(cWidth / cHeight),
+			$author$project$Rect$renderSelection(aspectM),
 			$author$project$Zipper$toList(selections));
 	});
 var $elm$core$Tuple$second = function (_v0) {
@@ -6392,6 +6714,35 @@ var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$canvas = _VirtualDom_node('canvas');
+var $joakin$elm_canvas$Canvas$cnvs = A2($elm$html$Html$canvas, _List_Nil, _List_Nil);
+var $elm$virtual_dom$VirtualDom$property = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_property,
+			_VirtualDom_noInnerHtmlOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$property = $elm$virtual_dom$VirtualDom$property;
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$commands = function (list) {
+	return A2(
+		$elm$html$Html$Attributes$property,
+		'cmds',
+		A2($elm$json$Json$Encode$list, $elm$core$Basics$identity, list));
+};
+var $elm$html$Html$Attributes$height = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'height',
+		$elm$core$String$fromInt(n));
+};
+var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
+	return _VirtualDom_keyedNode(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$empty = _List_Nil;
+var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$beginPath = A2($joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$fn, 'beginPath', _List_Nil);
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
@@ -6426,49 +6777,6 @@ var $avh4$elm_color$Color$toCssString = function (_v0) {
 				')'
 			]));
 };
-var $elm$html$Html$canvas = _VirtualDom_node('canvas');
-var $joakin$elm_canvas$Canvas$cnvs = A2($elm$html$Html$canvas, _List_Nil, _List_Nil);
-var $elm$virtual_dom$VirtualDom$property = F2(
-	function (key, value) {
-		return A2(
-			_VirtualDom_property,
-			_VirtualDom_noInnerHtmlOrFormAction(key),
-			_VirtualDom_noJavaScriptOrHtmlUri(value));
-	});
-var $elm$html$Html$Attributes$property = $elm$virtual_dom$VirtualDom$property;
-var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$commands = function (list) {
-	return A2(
-		$elm$html$Html$Attributes$property,
-		'cmds',
-		A2($elm$json$Json$Encode$list, $elm$core$Basics$identity, list));
-};
-var $elm$html$Html$Attributes$height = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'height',
-		$elm$core$String$fromInt(n));
-};
-var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
-	return _VirtualDom_keyedNode(
-		_VirtualDom_noScript(tag));
-};
-var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
-var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$empty = _List_Nil;
-var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$beginPath = A2($joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$fn, 'beginPath', _List_Nil);
-var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field = F2(
-	function (name, value) {
-		return $elm$json$Json$Encode$object(
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'type',
-					$elm$json$Json$Encode$string('field')),
-					_Utils_Tuple2(
-					'name',
-					$elm$json$Json$Encode$string(name)),
-					_Utils_Tuple2('value', value)
-				]));
-	});
 var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$fillStyle = function (color) {
 	return A2(
 		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field,
@@ -7181,21 +7489,129 @@ var $joakin$elm_canvas$Canvas$toHtmlWith = F3(
 				_Utils_Tuple2('__canvas', $joakin$elm_canvas$Canvas$cnvs),
 				A2($elm$core$List$map, $joakin$elm_canvas$Canvas$renderTextureSource, options.textures)));
 	});
+var $joakin$elm_canvas$Canvas$toHtml = F3(
+	function (_v0, attrs, entities) {
+		var w = _v0.a;
+		var h = _v0.b;
+		return A3(
+			$joakin$elm_canvas$Canvas$toHtmlWith,
+			{height: h, textures: _List_Nil, width: w},
+			attrs,
+			entities);
+	});
+var $author$project$Zipper$Focus = {$: 'Focus'};
+var $author$project$Zipper$Other = {$: 'Other'};
+var $author$project$Zipper$mmap = F2(
+	function (f, _v0) {
+		var prev = _v0.prev;
+		var focus = _v0.focus;
+		var next = _v0.next;
+		return {
+			focus: A2(f, $author$project$Zipper$Focus, focus),
+			next: A2(
+				$elm$core$List$map,
+				f($author$project$Zipper$Other),
+				next),
+			prev: A2(
+				$elm$core$List$map,
+				f($author$project$Zipper$Other),
+				prev)
+		};
+	});
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $author$project$Zipper$toListMode = function (z) {
+	return $author$project$Zipper$toList(
+		A2($author$project$Zipper$mmap, $elm$core$Tuple$pair, z));
+};
 var $elm$core$Debug$toString = _Debug_toString;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $avh4$elm_color$Color$white = A4($avh4$elm_color$Color$RgbaSpace, 255 / 255, 255 / 255, 255 / 255, 1.0);
 var $author$project$Main$view = function (model) {
 	var tex = model.tex;
 	var renders = model.renders;
 	var cDim = model.cDim;
 	var selections = model.selections;
 	var url = model.url;
+	var aspectM = model.aspectM;
 	var recSteps = model.recSteps;
+	var selectionsView = function () {
+		var w = 20 * $author$project$Zipper$length(model.selections);
+		var renderDot = F2(
+			function (n, _v3) {
+				var mode = _v3.a;
+				var sel = _v3.b;
+				var radius = 5;
+				var pos = _Utils_Tuple2(10 + (20 * n), 10);
+				if (mode.$ === 'Other') {
+					return _List_fromArray(
+						[
+							A2(
+							$joakin$elm_canvas$Canvas$shapes,
+							_List_fromArray(
+								[
+									$joakin$elm_canvas$Canvas$Settings$fill(sel.color)
+								]),
+							_List_fromArray(
+								[
+									A2($joakin$elm_canvas$Canvas$circle, pos, radius)
+								]))
+						]);
+				} else {
+					return _List_fromArray(
+						[
+							A2(
+							$joakin$elm_canvas$Canvas$shapes,
+							_List_fromArray(
+								[
+									$joakin$elm_canvas$Canvas$Settings$fill(sel.color)
+								]),
+							_List_fromArray(
+								[
+									A2($joakin$elm_canvas$Canvas$circle, pos, radius)
+								])),
+							A2(
+							$joakin$elm_canvas$Canvas$shapes,
+							_List_fromArray(
+								[
+									$joakin$elm_canvas$Canvas$Settings$stroke($avh4$elm_color$Color$black)
+								]),
+							_List_fromArray(
+								[
+									A2($joakin$elm_canvas$Canvas$circle, pos, radius + 1)
+								]))
+						]);
+				}
+			});
+		var h = 20;
+		var dots = $elm$core$List$concat(
+			A2(
+				$author$project$Util$list_mapi,
+				renderDot,
+				$author$project$Zipper$toListMode(model.selections)));
+		return A3(
+			$joakin$elm_canvas$Canvas$toHtml,
+			_Utils_Tuple2(
+				$elm$core$Basics$floor(w),
+				$elm$core$Basics$floor(h)),
+			_List_Nil,
+			A2(
+				$elm$core$List$cons,
+				A2(
+					$author$project$Main$clearCanvas,
+					_Utils_Tuple2(w, h),
+					$avh4$elm_color$Color$white),
+				dots));
+	}();
 	var selectionMenu = A2(
 		$elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
+				selectionsView,
 				A2(
 				$elm$html$Html$button,
 				_List_fromArray(
@@ -7207,19 +7623,6 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$text('Prev')
 					])),
 				A2(
-				$elm$html$Html$label,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$Attributes$style,
-						'background-color',
-						$avh4$elm_color$Color$toCssString(selections.focus.color))
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Current')
-					])),
-				A2(
 				$elm$html$Html$button,
 				_List_fromArray(
 					[
@@ -7228,16 +7631,6 @@ var $author$project$Main$view = function (model) {
 				_List_fromArray(
 					[
 						$elm$html$Html$text('Next')
-					])),
-				A2(
-				$elm$html$Html$button,
-				_List_fromArray(
-					[
-						$elm$html$Html$Events$onClick($author$project$Main$ClearSelection)
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Clean')
 					]))
 			]));
 	var contents = function () {
@@ -7249,7 +7642,7 @@ var $author$project$Main$view = function (model) {
 		} else {
 			return _Utils_ap(
 				renders,
-				A2($author$project$Main$renderSelections, cDim, selections));
+				A2($author$project$Main$renderSelections, aspectM, selections));
 		}
 	}();
 	return A2(
@@ -7289,7 +7682,7 @@ var $author$project$Main$view = function (model) {
 					]),
 				A2(
 					$elm$core$List$cons,
-					$author$project$Main$clearScreen(model),
+					A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
 					contents)),
 				A2(
 				$elm$html$Html$div,
@@ -7338,7 +7731,29 @@ var $author$project$Main$view = function (model) {
 								$elm$core$Debug$toString(recSteps))
 							]),
 						_List_Nil),
-						selectionMenu
+						selectionMenu,
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick(
+								$author$project$Main$ClearSelection($author$project$Main$ClearOne))
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Clear')
+							])),
+						A2(
+						$elm$html$Html$button,
+						_List_fromArray(
+							[
+								$elm$html$Html$Events$onClick(
+								$author$project$Main$ClearSelection($author$project$Main$ClearAll))
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Clear All')
+							]))
 					]))
 			]));
 };

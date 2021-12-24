@@ -63,3 +63,8 @@ sign x =
 
     else
         0
+
+
+list_mapi : (Int -> a -> b) -> List a -> List b
+list_mapi f l =
+    Tuple.first (List.foldl (\a ( bs, n ) -> ( bs ++ [ f n a ], n + 1 )) ( [], 0 ) l)

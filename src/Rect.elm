@@ -1,8 +1,10 @@
-module Rect exposing (Corner(..), Rect, Selection, deactivate, fitRectAspect, getC, height, mkRect, mkRectDim, mkSelection, renderSelection, selDown, selMove, selUp, width)
+module Rect exposing (Corner(..), Rect, Selection, SelectionMode(..), deactivate, fitRectAspect, getAspect, getC, getHeight, getWidth, mkRect, mkRectDim, mkSelection, rectEmpty, renderSelection, selDown, selIsActive, selIsCleared, selMove, selUp)
 
+import Array exposing (initialize)
 import Canvas exposing (Point, Renderable, group, lineTo, path, rect, shapes, texture)
 import Canvas.Settings exposing (fill, stroke)
 import Canvas.Settings.Advanced exposing (Transform, scale, transform, translate)
+import Canvas.Settings.Line exposing (LineJoin(..), lineDash, lineDashOffset, lineJoin, lineWidth)
 import Color exposing (Color)
 import Util exposing (sign)
 
@@ -14,7 +16,12 @@ type alias Rect =
 
 
 type alias Selection =
-    { rect : Rect, color : Color, isActive : Bool }
+    { rect : Rect, initialRect : Rect, color : Color, mode : SelectionMode }
+
+
+type SelectionMode
+    = SelectionSource
+    | SelectionSink Bool
 
 
 type Corner
@@ -22,6 +29,21 @@ type Corner
     | UR
     | LL
     | LR
+
+
+setActive : Bool -> SelectionMode -> SelectionMode
+setActive b mode =
+    case mode of
+        SelectionSource ->
+            SelectionSource
+
+        SelectionSink _ ->
+            SelectionSink b
+
+
+origin : Point
+origin =
+    ( -1, -1 )
 
 
 {-| Make a rectangle with a corner and dimensions
@@ -32,41 +54,69 @@ mkRect ( x1, y1 ) ( x2, y2 ) =
     { x1 = min x1 x2, y1 = min y1 y2, x2 = max x1 x2, y2 = max y1 y2 }
 
 
+rectEmpty : Rect
+rectEmpty =
+    mkRect origin origin
+
+
 mkRectDim : Point -> Point -> Rect
 mkRectDim ( x, y ) ( w, h ) =
     mkRect ( x, y ) ( x + w, y + h )
 
 
-origin : Point
-origin =
-    ( -1, -1 )
+getWidth : Rect -> Float
+getWidth { x1, x2 } =
+    abs (x2 - x1)
+
+
+getHeight : Rect -> Float
+getHeight { y1, y2 } =
+    abs (y2 - y1)
+
+
+getAspect : Rect -> Float
+getAspect r =
+    getWidth r / getHeight r
 
 
 selDown : Point -> Selection -> Selection
-selDown ( x, y ) sel =
-    { sel | rect = { x1 = x, y1 = y, x2 = x, y2 = y }, isActive = True }
+selDown p sel =
+    { sel | rect = mkRect p p, mode = setActive True sel.mode }
 
 
 selMove : Point -> Selection -> Selection
 selMove ( x2, y2 ) sel =
     let
         -- We cannot use the consturctors mkRect[Dim] because we must preserve the starting point.
-        newRect =
-            { x1 = sel.rect.x1, y1 = sel.rect.y1, x2 = x2, y2 = y2 }
+        rect =
+            sel.rect
     in
-    { sel | rect = newRect }
+    { sel | rect = { rect | x2 = x2, y2 = y2 } }
 
 
-selUp : Selection -> Selection
-selUp sel =
-    sel
+selUp : Maybe Float -> Selection -> Selection
+selUp aspectM sel =
+    if getWidth sel.rect < 1 || getHeight sel.rect < 1 then
+        deactivate sel
+
+    else
+        let
+            aspectRect =
+                case aspectM of
+                    Nothing ->
+                        sel.rect
+
+                    Just aspect ->
+                        fitRectAspect aspect sel.rect
+        in
+        { sel | rect = aspectRect }
 
 
 {-| Make a selection wihch is inactive by default.
 -}
-mkSelection : Color -> Selection
-mkSelection c =
-    { rect = mkRect origin origin, color = c, isActive = False }
+mkSelection : Color -> SelectionMode -> Rect -> Selection
+mkSelection color mode initialRect =
+    { rect = initialRect, initialRect = initialRect, color = color, mode = mode }
 
 
 fitRectAspect : Float -> Rect -> Rect
@@ -96,27 +146,59 @@ fitRectAspect aspect { x1, y1, x2, y2 } =
         mkRectDim ( x1, y1 ) ( dXRefl, dY )
 
 
-renderSelection : Float -> Selection -> List Renderable
-renderSelection aspect { rect, color, isActive } =
-    let
-        aspectRect =
-            fitRectAspect aspect rect
-    in
-    if isActive then
-        [ shapes [ stroke color ]
-            [ path (getC aspectRect UL)
-                (List.map (\c -> lineTo (getC aspectRect c)) [ LL, LR, UR, UL ])
-            ]
-        ]
+selIsCleared : Selection -> Bool
+selIsCleared { rect, initialRect } =
+    rect == initialRect
 
-    else
-        []
+
+selIsActive : Selection -> Bool
+selIsActive sel =
+    case sel.mode of
+        SelectionSource ->
+            True
+
+        SelectionSink b ->
+            b
+
+
+renderSelection : Maybe Float -> Selection -> List Renderable
+renderSelection aspectM sel =
+    let
+        rect =
+            case aspectM of
+                Nothing ->
+                    sel.rect
+
+                Just aspect ->
+                    fitRectAspect aspect sel.rect
+    in
+    case sel.mode of
+        SelectionSource ->
+            [ shapes [ stroke sel.color, lineWidth 2, lineJoin RoundJoin ]
+                [ path (getC UL rect)
+                    -- we draw over the startpoint by ending in LL again so that the lineJoin works correctly
+                    -- otherwise the first and last segment are not joined, elm-canvas apparently used to support closePath but doesn't anymore
+                    (List.map (\c -> lineTo (getC c rect)) [ LL, LR, UR, UL, LL ])
+                ]
+            ]
+
+        SelectionSink True ->
+            [ shapes [ stroke sel.color, lineDash [ 5 ] ]
+                [ path (getC UL rect)
+                    -- we draw over the startpoint by ending in LL again so that the lineJoin works correctly
+                    -- otherwise the first and last segment are not joined, elm-canvas apparently used to support closePath but doesn't anymore
+                    (List.map (\c -> lineTo (getC c rect)) [ LL, LR, UR, UL, LL ])
+                ]
+            ]
+
+        SelectionSink False ->
+            []
 
 
 {-| Get a corner of a rectangle
 -}
-getC : Rect -> Corner -> Point
-getC { x1, y1, x2, y2 } c =
+getC : Corner -> Rect -> Point
+getC c { x1, y1, x2, y2 } =
     case c of
         UL ->
             ( x1, y1 )
@@ -131,14 +213,6 @@ getC { x1, y1, x2, y2 } c =
             ( x2, y2 )
 
 
-width { x1, x2 } =
-    x2 - x1
-
-
-height { y1, y2 } =
-    y2 - y1
-
-
 deactivate : Selection -> Selection
-deactivate s =
-    { s | isActive = False }
+deactivate sel =
+    { sel | mode = setActive False sel.mode, rect = sel.initialRect }

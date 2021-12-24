@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Canvas exposing (Point, Renderable, group, lineTo, path, rect, shapes, texture)
+import Canvas exposing (Point, Renderable, circle, group, lineTo, path, rect, shapes, texture)
 import Canvas.Settings exposing (fill, stroke)
 import Canvas.Settings.Advanced exposing (Transform, scale, transform, translate)
 import Canvas.Settings.Line exposing (lineWidth)
@@ -9,17 +9,17 @@ import Canvas.Texture as T exposing (Source, Texture)
 import Color exposing (Color)
 import Debug exposing (toString)
 import File exposing (File)
-import Html exposing (Html, button, div, input, label, text)
+import Html exposing (Html, button, div, input, label, source, text)
 import Html.Attributes exposing (checked, for, id, style, type_, value)
 import Html.Events exposing (on, onClick, onInput)
 import Html.Events.Extra.Drag exposing (startPortData)
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as D
-import Rect as R exposing (Rect, Selection, fitRectAspect, mkRectDim, mkSelection, selDown, selMove, selUp)
+import Rect as R exposing (Rect, Selection, SelectionMode(..), fitRectAspect, mkRect, mkRectDim, mkSelection, rectEmpty, selDown, selMove, selUp)
 import Task
 import Tuple exposing (first, second)
-import Util exposing (iter, iterCollect, trunc_tail)
-import Zipper as Z exposing (Movement, Zipper, move)
+import Util exposing (iter, iterCollect, list_mapi, trunc_tail)
+import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
 
 
 {-| The model of this app. It encapsulates the menu flags as well as the state of the canvas.
@@ -40,8 +40,9 @@ import Zipper as Z exposing (Movement, Zipper, move)
 type alias Model =
     { tex : Maybe Texture
     , renders : List Renderable
-    , initialRenders : List Renderable
+    , initialRender : Renderable
     , cDim : Point
+    , aspectM : Maybe Float
     , selections : Zipper Selection
     , dragging : Bool
     , url : String
@@ -52,21 +53,42 @@ type alias Model =
 initialModel : Model
 initialModel =
     let
-        colors =
-            Z.mkZipper Color.red [ Color.green, Color.blue, Color.orange ]
+        canvasDim =
+            ( 400, 400 )
+
+        sourceSel =
+            R.mkSelection Color.black R.SelectionSource rectEmpty
+
+        sinkSels =
+            List.map (\c -> R.mkSelection c (R.SelectionSink False) rectEmpty) [ Color.red, Color.green, Color.blue, Color.orange ]
 
         selections =
-            Z.map R.mkSelection colors
+            mkZipper sourceSel sinkSels
     in
     { tex = Nothing
     , renders = []
-    , initialRenders = []
-    , cDim = ( 400, 400 )
+    , initialRender = clearCanvas canvasDim Color.lightGrey
+    , cDim = canvasDim
+    , aspectM = Nothing
     , selections = selections
     , dragging = False
     , url = ""
     , recSteps = 1
     }
+
+
+getActiveAspect : Model -> Float
+getActiveAspect { aspectM, cDim } =
+    case aspectM of
+        Just asp ->
+            asp
+
+        Nothing ->
+            let
+                ( w, h ) =
+                    cDim
+            in
+            w / h
 
 
 {-|
@@ -96,7 +118,12 @@ type Msg
     | Stamp
     | NextSelection
     | PrevSelection
-    | ClearSelection
+    | ClearSelection ClearAmount
+
+
+type ClearAmount
+    = ClearOne
+    | ClearAll
 
 
 main : Program () Model Msg
@@ -166,24 +193,24 @@ main =
 --     { model | renders = renders ++ newRenders }
 
 
-addRecursion2 : Point -> List Rect -> List Renderable -> List Renderable
-addRecursion2 ( cWidth, cHeight ) rects renders =
+addRecursion2 : Float -> Point -> List Rect -> List Renderable -> List Renderable
+addRecursion2 width ( x1, y1 ) rects renders =
     let
-        aspect =
-            cWidth / cHeight
-
-        aspectRects =
-            List.map (fitRectAspect aspect) rects
-
         copy r =
             let
                 s =
-                    R.width r / cWidth
+                    R.getWidth r / width
+
+                _ =
+                    Debug.log "(x1, y1) = " ( x1, y1 )
+
+                _ =
+                    Debug.log "r.(x1, y1) = " ( r.x1, r.y1 )
             in
-            group [ transform [ translate r.x1 r.y1, scale s s ] ] renders
+            group [ transform [ translate (r.x1 - x1) (r.y1 - y1), scale s s ] ] renders
 
         newRenders =
-            List.map copy aspectRects
+            List.map copy rects
     in
     newRenders
 
@@ -196,22 +223,35 @@ This is done iteratively:
 
 -}
 addRecursions2 : Model -> Model
-addRecursions2 ({ initialRenders, renders, cDim, selections, recSteps } as model) =
+addRecursions2 ({ initialRender, renders, cDim, selections, recSteps } as model) =
     let
-        activeRects =
-            List.filterMap
-                (\s ->
-                    if s.isActive then
-                        Just s.rect
+        ( cWidth, cHeight ) =
+            cDim
 
-                    else
-                        Nothing
+        sourceRect =
+            (Z.getFirst selections).rect
+
+        sinkRects =
+            List.filterMap
+                (\sel ->
+                    case sel.mode of
+                        SelectionSink True ->
+                            Just sel.rect
+
+                        _ ->
+                            Nothing
                 )
                 (Z.toList selections)
 
+        sourceRender =
+            -- this does not work since the aspect ratio is changed so after 2 recursion steps nothing lines up anymore
+            -- group [ transform [ translate sourceRect.x1 sourceRect.y1, scale (R.getWidth sourceRect / cWidth) (R.getHeight sourceRect / cHeight) ] ] [ initialRender ]
+            -- If I can get a cutout from initialRender then the scaling login in addRecursion2 should just work
+            initialRender
+
         -- trunc_tail to throw away the initialRenders
         newRenders =
-            trunc_tail (iterCollect recSteps (addRecursion2 cDim activeRects) initialRenders)
+            trunc_tail (iterCollect recSteps (addRecursion2 (R.getWidth sourceRect) (R.getC R.UL sourceRect) sinkRects) [ sourceRender ])
     in
     { model | renders = renders ++ List.concat newRenders }
 
@@ -237,6 +277,7 @@ update msg model =
         DownMsg p ->
             { model | dragging = True, selections = Z.modify (selDown p) model.selections } |> lm
 
+        -- fitToAspect here instead of in recursion + view
         MoveMsg p ->
             if model.dragging then
                 { model | selections = Z.modify (selMove p) model.selections } |> lm
@@ -245,7 +286,7 @@ update msg model =
                 model |> lm
 
         UpMsg ->
-            { model | dragging = False, selections = Z.modify selUp model.selections } |> updateRenders |> lm
+            upSelection model |> lm
 
         LoadTex url ->
             let
@@ -287,7 +328,7 @@ update msg model =
                 selections =
                     Z.map R.deactivate model.selections
             in
-            { model | initialRenders = model.renders, selections = selections } |> lm
+            { model | initialRender = group [] model.renders, selections = selections } |> updateRenders |> lm
 
         PrevSelection ->
             let
@@ -303,15 +344,32 @@ update msg model =
             in
             { model | selections = selections } |> lm
 
-        ClearSelection ->
+        ClearSelection ca ->
             let
                 selections =
-                    Z.modify R.deactivate model.selections
+                    case ca of
+                        ClearOne ->
+                            Z.modify R.deactivate model.selections
+
+                        ClearAll ->
+                            Z.map R.deactivate model.selections
+
+                -- reset the aspect ratio if all selections are cleared
+                aspectM =
+                    if List.all R.selIsCleared (Z.toList selections) then
+                        let
+                            _ =
+                                Debug.log "all clear" ()
+                        in
+                        Nothing
+
+                    else
+                        model.aspectM
             in
-            { model | selections = selections } |> updateRenders |> lm
+            { model | selections = selections, aspectM = aspectM } |> updateRenders |> lm
 
 
-{-| Initialize the renders of a model from a texture
+{-| Initialize the renders of a model from a texture.
 -}
 initRenders : Maybe Texture -> Model -> Model
 initRenders tex model =
@@ -330,13 +388,52 @@ initRenders tex model =
 
                 newtex =
                     texture [ transform [ scale s s ] ] ( 0, 0 ) t
+
+                cDim =
+                    ( s * width, s * height )
+
+                canvasRect =
+                    mkRect ( 0, 0 ) cDim
+
+                selections =
+                    Z.modify (\sel -> { sel | rect = canvasRect, initialRect = canvasRect }) initialModel.selections
             in
-            { initialModel | tex = tex, url = model.url, cDim = ( s * width, s * height ), initialRenders = [ newtex ], renders = [ newtex ] }
+            { initialModel | tex = tex, url = model.url, cDim = cDim, initialRender = newtex, renders = [ newtex ], selections = selections }
 
 
 resetRenders : Model -> Model
 resetRenders model =
-    { model | renders = model.initialRenders }
+    { model | renders = [ model.initialRender ] }
+
+
+upSelection : Model -> Model
+upSelection model =
+    let
+        -- we pass in aspectM so that the rectangle can be scaled in case we have an aspect
+        selections =
+            Z.modify (selUp model.aspectM) model.selections
+
+        focusSel =
+            Z.getFocus selections
+
+        -- if aspectM was used in selUp then it was a Just,
+        aspectM =
+            case model.aspectM of
+                Just _ ->
+                    model.aspectM
+
+                Nothing ->
+                    if R.selIsActive focusSel then
+                        let
+                            _ =
+                                Debug.log "set new aspect" ()
+                        in
+                        Just (R.getAspect focusSel.rect)
+
+                    else
+                        Nothing
+    in
+    { model | dragging = False, selections = selections, aspectM = aspectM } |> updateRenders
 
 
 print : String -> Renderable
@@ -344,13 +441,13 @@ print str =
     Canvas.text [] ( 10, 10 ) str
 
 
-renderSelections : Point -> Zipper Selection -> List Renderable
-renderSelections ( cWidth, cHeight ) selections =
-    List.concatMap (R.renderSelection (cWidth / cHeight)) (Z.toList selections)
+renderSelections : Maybe Float -> Zipper Selection -> List Renderable
+renderSelections aspectM selections =
+    List.concatMap (R.renderSelection aspectM) (Z.toList selections)
 
 
 view : Model -> Html Msg
-view ({ tex, renders, cDim, selections, url, recSteps } as model) =
+view ({ tex, renders, cDim, selections, url, aspectM, recSteps } as model) =
     let
         contents =
             case tex of
@@ -360,14 +457,45 @@ view ({ tex, renders, cDim, selections, url, recSteps } as model) =
                 Just _ ->
                     renders
                         -- ++ [ print (toString startPos ++ toString curPos) ]
-                        ++ renderSelections cDim selections
+                        ++ renderSelections aspectM selections
+
+        selectionsView =
+            let
+                renderDot n ( mode, sel ) =
+                    let
+                        pos =
+                            ( 10 + 20 * toFloat n, 10 )
+
+                        radius =
+                            5
+                    in
+                    case mode of
+                        Z.Other ->
+                            [ shapes [ fill sel.color ] [ circle pos radius ] ]
+
+                        Z.Focus ->
+                            [ shapes [ fill sel.color ] [ circle pos radius ]
+                            , shapes [ stroke Color.black ] [ circle pos (radius + 1) ]
+                            ]
+
+                dots =
+                    List.concat (list_mapi renderDot (Z.toListMode model.selections))
+
+                w =
+                    20 * toFloat (Z.length model.selections)
+
+                h =
+                    20
+            in
+            Canvas.toHtml ( floor w, floor h ) [] (clearCanvas ( w, h ) Color.white :: dots)
 
         selectionMenu =
             div []
-                [ button [ onClick PrevSelection ] [ text "Prev" ]
-                , label [ style "background-color" (Color.toCssString selections.focus.color) ] [ text "Current" ]
+                [ selectionsView
+                , button [ onClick PrevSelection ] [ text "Prev" ]
+
+                -- , label [ style "background-color" (Color.toCssString selections.focus.color) ] [ text "Current" ]
                 , button [ onClick NextSelection ] [ text "Next" ]
-                , button [ onClick ClearSelection ] [ text "Clean" ]
                 ]
     in
     div
@@ -384,7 +512,7 @@ view ({ tex, renders, cDim, selections, url, recSteps } as model) =
             , Mouse.onMove (\event -> MoveMsg event.offsetPos)
             , Mouse.onUp (\_ -> UpMsg)
             ]
-            (clearScreen model :: contents)
+            (clearCanvas cDim Color.lightGrey :: contents)
         , div []
             [ button [ onClick (LoadTex "./assets/image.jpg") ] [ text "Load example" ]
             , button [ onClick Stamp ] [ text "Stamp" ]
@@ -415,17 +543,15 @@ view ({ tex, renders, cDim, selections, url, recSteps } as model) =
                 ]
                 []
             , selectionMenu
+            , button [ onClick (ClearSelection ClearOne) ] [ text "Clear" ]
+            , button [ onClick (ClearSelection ClearAll) ] [ text "Clear All" ]
             ]
         ]
 
 
-clearScreen : Model -> Renderable
-clearScreen model =
-    let
-        ( cWidth, cHeight ) =
-            model.cDim
-    in
-    shapes [ fill Color.grey ] [ rect ( 0, 0 ) cWidth cHeight ]
+clearCanvas : Point -> Color -> Renderable
+clearCanvas ( w, h ) color =
+    shapes [ fill color ] [ rect ( 0, 0 ) w h ]
 
 
 processFile : List File -> Msg
