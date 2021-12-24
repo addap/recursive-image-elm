@@ -5499,22 +5499,19 @@ var $author$project$Main$initialModel = function () {
 			[$avh4$elm_color$Color$red, $avh4$elm_color$Color$green, $avh4$elm_color$Color$blue, $avh4$elm_color$Color$orange]));
 	var selections = A2($author$project$Zipper$mkZipper, sourceSel, sinkSels);
 	var canvasDim = _Utils_Tuple2(400, 400);
-	return {
-		aspectM: $elm$core$Maybe$Nothing,
-		cDim: canvasDim,
-		dragging: false,
-		initialRender: A2($author$project$Main$clearCanvas, canvasDim, $avh4$elm_color$Color$lightGrey),
-		recSteps: 1,
-		renders: _List_Nil,
-		selections: selections,
-		tex: $elm$core$Maybe$Nothing,
-		url: ''
-	};
+	var initialRender = A2($author$project$Main$clearCanvas, canvasDim, $avh4$elm_color$Color$lightGrey);
+	return {aspectM: $elm$core$Maybe$Nothing, blobUrl: '', cDim: canvasDim, dragging: false, initialRender: initialRender, recSteps: 1, renders: _List_Nil, selections: selections, showGrid: true, sourceRender: initialRender, tex: $elm$core$Maybe$Nothing, url: ''};
 }();
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$ReceiveBlob = function (a) {
+	return {$: 'ReceiveBlob', a: a};
+};
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $author$project$Main$blobReceiver = _Platform_incomingPort('blobReceiver', $elm$json$Json$Decode$string);
+var $author$project$Main$subscriptions = function (_v0) {
+	return $author$project$Main$blobReceiver($author$project$Main$ReceiveBlob);
+};
 var $author$project$Main$LoadTex = function (a) {
 	return {$: 'LoadTex', a: a};
 };
@@ -5570,6 +5567,39 @@ var $author$project$Rect$deactivate = function (sel) {
 			rect: sel.initialRect
 		});
 };
+var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
+	if (texture.$ === 'TImage') {
+		var image = texture.a;
+		return {height: image.height, width: image.width};
+	} else {
+		var data = texture.a;
+		return {height: data.height, width: data.width};
+	}
+};
+var $author$project$Zipper$getFirst = function (_v0) {
+	var prev = _v0.prev;
+	var focus = _v0.focus;
+	var _v1 = $elm$core$List$reverse(prev);
+	if (!_v1.b) {
+		return focus;
+	} else {
+		var fst = _v1.a;
+		return fst;
+	}
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $author$project$Rect$getHeight = function (_v0) {
+	var y1 = _v0.y1;
+	var y2 = _v0.y2;
+	return $elm$core$Basics$abs(y2 - y1);
+};
+var $author$project$Rect$getWidth = function (_v0) {
+	var x1 = _v0.x1;
+	var x2 = _v0.x2;
+	return $elm$core$Basics$abs(x2 - x1);
+};
 var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup = function (a) {
 	return {$: 'DrawableGroup', a: a};
 };
@@ -5585,15 +5615,6 @@ var $joakin$elm_canvas$Canvas$group = F2(
 					drawable: $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableGroup(entities)
 				}));
 	});
-var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
-	if (texture.$ === 'TImage') {
-		var image = texture.a;
-		return {height: image.height, width: image.width};
-	} else {
-		var data = texture.a;
-		return {height: data.height, width: data.width};
-	}
-};
 var $author$project$Zipper$modify = F2(
 	function (f, z) {
 		return _Utils_update(
@@ -5784,6 +5805,7 @@ var $author$project$Main$initRenders = F2(
 					renders: _List_fromArray(
 						[newtex]),
 					selections: selections,
+					sourceRender: newtex,
 					tex: tex,
 					url: model.url
 				});
@@ -5874,6 +5896,20 @@ var $author$project$Rect$selMove = F2(
 					{x2: x2, y2: y2})
 			});
 	});
+var $joakin$elm_canvas$Canvas$Internal$Texture$TSprite = F2(
+	function (a, b) {
+		return {$: 'TSprite', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Texture$sprite = F2(
+	function (data, texture) {
+		if (texture.$ === 'TImage') {
+			var image = texture.a;
+			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
+		} else {
+			var image = texture.b;
+			return A2($joakin$elm_canvas$Canvas$Internal$Texture$TSprite, data, image);
+		}
+	});
 var $author$project$Zipper$toList = function (_v0) {
 	var prev = _v0.prev;
 	var focus = _v0.focus;
@@ -5887,19 +5923,11 @@ var $elm$time$Time$Posix = function (a) {
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $elm$file$File$toUrl = _File_toUrl;
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $author$project$Rect$getHeight = function (_v0) {
-	var y1 = _v0.y1;
-	var y2 = _v0.y2;
-	return $elm$core$Basics$abs(y2 - y1);
-};
-var $author$project$Rect$getWidth = function (_v0) {
-	var x1 = _v0.x1;
-	var x2 = _v0.x2;
-	return $elm$core$Basics$abs(x2 - x1);
-};
+var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
+	function (a, b) {
+		return {$: 'Translate', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
 var $author$project$Rect$getAspect = function (r) {
 	return $author$project$Rect$getWidth(r) / $author$project$Rect$getHeight(r);
 };
@@ -5971,22 +5999,22 @@ var $author$project$Rect$selUp = F2(
 		}
 	});
 var $author$project$Rect$UL = {$: 'UL'};
-var $joakin$elm_canvas$Canvas$Settings$Advanced$Translate = F2(
-	function (a, b) {
-		return {$: 'Translate', a: a, b: b};
-	});
-var $joakin$elm_canvas$Canvas$Settings$Advanced$translate = $joakin$elm_canvas$Canvas$Settings$Advanced$Translate;
-var $author$project$Main$addRecursion2 = F4(
-	function (width, _v0, rects, renders) {
+var $author$project$Main$addRecursion2 = F5(
+	function (cWidth, width, _v0, rects, renders) {
 		var x1 = _v0.a;
 		var y1 = _v0.b;
 		var copy = function (r) {
+			var s2 = width / cWidth;
 			var s = $author$project$Rect$getWidth(r) / width;
 			var _v1 = A2(
 				$elm$core$Debug$log,
+				'(s, s2) = ',
+				_Utils_Tuple2(s, s2));
+			var _v2 = A2(
+				$elm$core$Debug$log,
 				'(x1, y1) = ',
 				_Utils_Tuple2(x1, y1));
-			var _v2 = A2(
+			var _v3 = A2(
 				$elm$core$Debug$log,
 				'r.(x1, y1) = ',
 				_Utils_Tuple2(r.x1, r.y1));
@@ -5998,7 +6026,8 @@ var $author$project$Main$addRecursion2 = F4(
 						_List_fromArray(
 							[
 								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, r.x1 - x1, r.y1 - y1),
-								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s),
+								A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, (-x1) * s2, (-y1) * s2)
 							]))
 					]),
 				renders);
@@ -6052,17 +6081,6 @@ var $author$project$Rect$getC = F2(
 				return _Utils_Tuple2(x2, y2);
 		}
 	});
-var $author$project$Zipper$getFirst = function (_v0) {
-	var prev = _v0.prev;
-	var focus = _v0.focus;
-	var _v1 = $elm$core$List$reverse(prev);
-	if (!_v1.b) {
-		return focus;
-	} else {
-		var fst = _v1.a;
-		return fst;
-	}
-};
 var $author$project$Util$iterCollect = F3(
 	function (n, f, x) {
 		if (n > 0) {
@@ -6085,12 +6103,11 @@ var $author$project$Util$trunc_tail = function (l) {
 	}
 };
 var $author$project$Main$addRecursions2 = function (model) {
-	var initialRender = model.initialRender;
+	var sourceRender = model.sourceRender;
 	var renders = model.renders;
 	var cDim = model.cDim;
 	var selections = model.selections;
 	var recSteps = model.recSteps;
-	var sourceRender = initialRender;
 	var sourceRect = $author$project$Zipper$getFirst(selections).rect;
 	var sinkRects = A2(
 		$elm$core$List$filterMap,
@@ -6103,20 +6120,21 @@ var $author$project$Main$addRecursions2 = function (model) {
 			}
 		},
 		$author$project$Zipper$toList(selections));
+	var _v0 = cDim;
+	var cWidth = _v0.a;
+	var cHeight = _v0.b;
 	var newRenders = $author$project$Util$trunc_tail(
 		A3(
 			$author$project$Util$iterCollect,
 			recSteps,
-			A3(
+			A4(
 				$author$project$Main$addRecursion2,
+				cWidth,
 				$author$project$Rect$getWidth(sourceRect),
 				A2($author$project$Rect$getC, $author$project$Rect$UL, sourceRect),
 				sinkRects),
 			_List_fromArray(
 				[sourceRender])));
-	var _v0 = cDim;
-	var cWidth = _v0.a;
-	var cHeight = _v0.b;
 	return _Utils_update(
 		model,
 		{
@@ -6129,6 +6147,12 @@ var $author$project$Main$updateRenders = function (model) {
 	return $author$project$Main$addRecursions2(
 		$author$project$Main$resetRenders(model));
 };
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Main$updateSource = _Platform_outgoingPort(
+	'updateSource',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
 var $author$project$Main$upSelection = function (model) {
 	var selections = A2(
 		$author$project$Zipper$modify,
@@ -6136,12 +6160,12 @@ var $author$project$Main$upSelection = function (model) {
 		model.selections);
 	var focusSel = $author$project$Zipper$getFocus(selections);
 	var aspectM = function () {
-		var _v0 = model.aspectM;
-		if (_v0.$ === 'Just') {
+		var _v2 = model.aspectM;
+		if (_v2.$ === 'Just') {
 			return model.aspectM;
 		} else {
 			if ($author$project$Rect$selIsActive(focusSel)) {
-				var _v1 = A2($elm$core$Debug$log, 'set new aspect', _Utils_Tuple0);
+				var _v3 = A2($elm$core$Debug$log, 'set new aspect', _Utils_Tuple0);
 				return $elm$core$Maybe$Just(
 					$author$project$Rect$getAspect(focusSel.rect));
 			} else {
@@ -6149,10 +6173,19 @@ var $author$project$Main$upSelection = function (model) {
 			}
 		}
 	}();
-	return $author$project$Main$updateRenders(
-		_Utils_update(
-			model,
-			{aspectM: aspectM, dragging: false, selections: selections}));
+	var newModel = _Utils_update(
+		model,
+		{aspectM: aspectM, dragging: false, selections: selections});
+	var _v0 = focusSel.mode;
+	if (_v0.$ === 'SelectionSink') {
+		return $author$project$Main$lm(
+			$author$project$Main$updateRenders(newModel));
+	} else {
+		var _v1 = A2($elm$core$Debug$log, 'ask blob', _Utils_Tuple0);
+		return _Utils_Tuple2(
+			newModel,
+			$author$project$Main$updateSource(_Utils_Tuple0));
+	}
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -6185,8 +6218,7 @@ var $author$project$Main$update = F2(
 								model.selections)
 						})) : $author$project$Main$lm(model);
 			case 'UpMsg':
-				return $author$project$Main$lm(
-					$author$project$Main$upSelection(model));
+				return $author$project$Main$upSelection(model);
 			case 'LoadTex':
 				var url = msg.a;
 				var _v1 = A2($elm$core$Debug$log, 'url:', url);
@@ -6240,7 +6272,7 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{selections: selections}));
-			default:
+			case 'ClearSelection':
 				var ca = msg.a;
 				var selections = function () {
 					if (ca.$ === 'ClearOne') {
@@ -6265,8 +6297,67 @@ var $author$project$Main$update = F2(
 						_Utils_update(
 							model,
 							{aspectM: aspectM, selections: selections})));
+			case 'ReceiveBlob':
+				var blobUrl = msg.a;
+				var _v9 = A2($elm$core$Debug$log, 'receiveblob!', _Utils_Tuple0);
+				return $author$project$Main$lm(
+					_Utils_update(
+						model,
+						{blobUrl: blobUrl}));
+			case 'BlobLoaded':
+				var tex = msg.a;
+				if (tex.$ === 'Nothing') {
+					var _v11 = A2($elm$core$Debug$log, 'blob failed', _Utils_Tuple0);
+					return $author$project$Main$lm(model);
+				} else {
+					var t = tex.a;
+					var sourceRect = $author$project$Zipper$getFirst(model.selections).rect;
+					var _v12 = $joakin$elm_canvas$Canvas$Texture$dimensions(t);
+					var width = _v12.width;
+					var height = _v12.height;
+					var s = $author$project$Main$initialModel.cDim.a / width;
+					var newSource = A3(
+						$joakin$elm_canvas$Canvas$texture,
+						_List_fromArray(
+							[
+								$joakin$elm_canvas$Canvas$Settings$Advanced$transform(
+								_List_fromArray(
+									[
+										A2($joakin$elm_canvas$Canvas$Settings$Advanced$translate, sourceRect.x1, sourceRect.y1),
+										A2($joakin$elm_canvas$Canvas$Settings$Advanced$scale, s, s)
+									]))
+							]),
+						_Utils_Tuple2(0, 0),
+						A2(
+							$joakin$elm_canvas$Canvas$Texture$sprite,
+							{
+								height: $author$project$Rect$getHeight(sourceRect) / s,
+								width: $author$project$Rect$getWidth(sourceRect) / s,
+								x: sourceRect.x1 / s,
+								y: sourceRect.y1 / s
+							},
+							t));
+					var _v13 = A2($elm$core$Debug$log, 'blob!', t);
+					return $author$project$Main$lm(
+						$author$project$Main$updateRenders(
+							_Utils_update(
+								model,
+								{sourceRender: newSource})));
+				}
+			default:
+				var b = msg.a;
+				return $author$project$Main$lm(
+					_Utils_update(
+						model,
+						{showGrid: b}));
 		}
 	});
+var $author$project$Main$BlobLoaded = function (a) {
+	return {$: 'BlobLoaded', a: a};
+};
+var $author$project$Main$ChangeGrid = function (a) {
+	return {$: 'ChangeGrid', a: a};
+};
 var $author$project$Main$ClearAll = {$: 'ClearAll'};
 var $author$project$Main$ClearOne = {$: 'ClearOne'};
 var $author$project$Main$ClearSelection = function (a) {
@@ -6286,6 +6377,26 @@ var $author$project$Main$TextureLoaded = function (a) {
 };
 var $author$project$Main$UpMsg = {$: 'UpMsg'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$at = F2(
+	function (fields, decoder) {
+		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
+	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $author$project$Main$checkboxDecoder = A2(
+	$elm$json$Json$Decode$at,
+	_List_fromArray(
+		['target', 'checked']),
+	$elm$json$Json$Decode$bool);
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$checked = $elm$html$Html$Attributes$boolProperty('checked');
 var $joakin$elm_canvas$Canvas$Internal$Canvas$Circle = F2(
 	function (a, b) {
 		return {$: 'Circle', a: a, b: b};
@@ -6295,11 +6406,6 @@ var $joakin$elm_canvas$Canvas$circle = F2(
 		return A2($joakin$elm_canvas$Canvas$Internal$Canvas$Circle, pos, radius);
 	});
 var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$at = F2(
-	function (fields, decoder) {
-		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
-	});
 var $elm$file$File$decoder = _File_decoder;
 var $elm$json$Json$Decode$list = _Json_decodeList;
 var $author$project$Main$filesDecoder = A2(
@@ -6307,11 +6413,27 @@ var $author$project$Main$filesDecoder = A2(
 	_List_fromArray(
 		['target', 'files']),
 	$elm$json$Json$Decode$list($elm$file$File$decoder));
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$for = $elm$html$Html$Attributes$stringProperty('htmlFor');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$html$Html$label = _VirtualDom_node('label');
 var $author$project$Zipper$length = function (_v0) {
 	var prev = _v0.prev;
 	var next = _v0.next;
 	return ($elm$core$List$length(prev) + $elm$core$List$length(next)) + 1;
+};
+var $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo = function (a) {
+	return {$: 'LineTo', a: a};
+};
+var $joakin$elm_canvas$Canvas$lineTo = function (point) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo(point);
 };
 var $author$project$Util$list_mapi = F2(
 	function (f, l) {
@@ -6413,7 +6535,6 @@ var $mpizenberg$elm_pointer_events$Internal$Decode$Keys = F3(
 	function (alt, ctrl, shift) {
 		return {alt: alt, ctrl: ctrl, shift: shift};
 	});
-var $elm$json$Json$Decode$bool = _Json_decodeBool;
 var $elm$json$Json$Decode$map3 = _Json_map3;
 var $mpizenberg$elm_pointer_events$Internal$Decode$keys = A4(
 	$elm$json$Json$Decode$map3,
@@ -6477,7 +6598,6 @@ var $elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
 var $elm$html$Html$Events$targetValue = A2(
 	$elm$json$Json$Decode$at,
 	_List_fromArray(
@@ -6494,6 +6614,14 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 };
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onMove = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onWithOptions, 'mousemove', $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$defaultOptions);
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onUp = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onWithOptions, 'mouseup', $mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$defaultOptions);
+var $joakin$elm_canvas$Canvas$Internal$Canvas$Path = F2(
+	function (a, b) {
+		return {$: 'Path', a: a, b: b};
+	});
+var $joakin$elm_canvas$Canvas$path = F2(
+	function (startingPoint, segments) {
+		return A2($joakin$elm_canvas$Canvas$Internal$Canvas$Path, startingPoint, segments);
+	});
 var $joakin$elm_canvas$Canvas$Internal$Canvas$DrawableText = function (a) {
 	return {$: 'DrawableText', a: a};
 };
@@ -6601,12 +6729,6 @@ var $joakin$elm_canvas$Canvas$Settings$Line$lineJoin = function (join) {
 		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineJoin(
 			$joakin$elm_canvas$Canvas$Settings$Line$lineJoinToString(join)));
 };
-var $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo = function (a) {
-	return {$: 'LineTo', a: a};
-};
-var $joakin$elm_canvas$Canvas$lineTo = function (point) {
-	return $joakin$elm_canvas$Canvas$Internal$Canvas$LineTo(point);
-};
 var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineWidth = function (value) {
 	return A2(
 		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$field,
@@ -6617,14 +6739,6 @@ var $joakin$elm_canvas$Canvas$Settings$Line$lineWidth = function (width) {
 	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingCommand(
 		$joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$lineWidth(width));
 };
-var $joakin$elm_canvas$Canvas$Internal$Canvas$Path = F2(
-	function (a, b) {
-		return {$: 'Path', a: a, b: b};
-	});
-var $joakin$elm_canvas$Canvas$path = F2(
-	function (startingPoint, segments) {
-		return A2($joakin$elm_canvas$Canvas$Internal$Canvas$Path, startingPoint, segments);
-	});
 var $joakin$elm_canvas$Canvas$Settings$stroke = function (color) {
 	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp(
 		$joakin$elm_canvas$Canvas$Internal$Canvas$Stroke(color));
@@ -6706,10 +6820,6 @@ var $author$project$Main$renderSelections = F2(
 			$author$project$Rect$renderSelection(aspectM),
 			$author$project$Zipper$toList(selections));
 	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
@@ -6806,7 +6916,6 @@ var $joakin$elm_canvas$Canvas$renderClear = F4(
 			A4($joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$clearRect, x, y, w, h),
 			cmds);
 	});
-var $elm$json$Json$Encode$bool = _Json_wrap;
 var $joakin$elm_canvas$Canvas$Internal$CustomElementJsonApi$arc = F6(
 	function (x, y, radius, startAngle, endAngle, anticlockwise) {
 		return A2(
@@ -7425,13 +7534,6 @@ var $joakin$elm_canvas$Canvas$Internal$Texture$decodeTextureImage = A2(
 	$elm$json$Json$Decode$value);
 var $joakin$elm_canvas$Canvas$Internal$Texture$decodeImageLoadEvent = A2($elm$json$Json$Decode$field, 'target', $joakin$elm_canvas$Canvas$Internal$Texture$decodeTextureImage);
 var $elm$html$Html$img = _VirtualDom_node('img');
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -7536,14 +7638,17 @@ var $author$project$Main$view = function (model) {
 	var cDim = model.cDim;
 	var selections = model.selections;
 	var url = model.url;
+	var blobUrl = model.blobUrl;
 	var aspectM = model.aspectM;
 	var recSteps = model.recSteps;
+	var initialRender = model.initialRender;
+	var sourceRender = model.sourceRender;
 	var selectionsView = function () {
 		var w = 20 * $author$project$Zipper$length(model.selections);
 		var renderDot = F2(
-			function (n, _v3) {
-				var mode = _v3.a;
-				var sel = _v3.b;
+			function (n, _v5) {
+				var mode = _v5.a;
+				var sel = _v5.b;
 				var radius = 5;
 				var pos = _Utils_Tuple2(10 + (20 * n), 10);
 				if (mode.$ === 'Other') {
@@ -7633,6 +7738,7 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$text('Next')
 					]))
 			]));
+	var gridStep = 25;
 	var contents = function () {
 		if (tex.$ === 'Nothing') {
 			return _List_fromArray(
@@ -7645,115 +7751,234 @@ var $author$project$Main$view = function (model) {
 				A2($author$project$Main$renderSelections, aspectM, selections));
 		}
 	}();
-	return A2(
-		$elm$html$Html$div,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-				A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
-				A2($elm$html$Html$Attributes$style, 'align-items', 'center')
-			]),
-		_List_fromArray(
-			[
-				A3(
-				$joakin$elm_canvas$Canvas$toHtmlWith,
-				{
-					height: $elm$core$Basics$floor(cDim.b),
-					textures: _List_fromArray(
+	var _v0 = cDim;
+	var width = _v0.a;
+	var height = _v0.b;
+	var grid = function () {
+		var vert = function (x) {
+			return (_Utils_cmp(x, width) < 1) ? A2(
+				$elm$core$List$cons,
+				A2(
+					$joakin$elm_canvas$Canvas$path,
+					_Utils_Tuple2(x, 0),
+					_List_fromArray(
 						[
-							A2($joakin$elm_canvas$Canvas$Texture$loadFromImageUrl, url, $author$project$Main$TextureLoaded)
-						]),
-					width: $elm$core$Basics$floor(cDim.a)
-				},
+							$joakin$elm_canvas$Canvas$lineTo(
+							_Utils_Tuple2(x, height))
+						])),
+				vert(x + gridStep)) : _List_Nil;
+		};
+		var horiz = function (y) {
+			return (_Utils_cmp(y, height) < 1) ? A2(
+				$elm$core$List$cons,
+				A2(
+					$joakin$elm_canvas$Canvas$path,
+					_Utils_Tuple2(0, y),
+					_List_fromArray(
+						[
+							$joakin$elm_canvas$Canvas$lineTo(
+							_Utils_Tuple2(width, y))
+						])),
+				horiz(y + gridStep)) : _List_Nil;
+		};
+		return _List_fromArray(
+			[
+				A2(
+				$joakin$elm_canvas$Canvas$shapes,
 				_List_fromArray(
 					[
-						$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onDown(
-						function (event) {
-							return $author$project$Main$DownMsg(event.offsetPos);
-						}),
-						$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onMove(
-						function (event) {
-							return $author$project$Main$MoveMsg(event.offsetPos);
-						}),
-						$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onUp(
-						function (_v0) {
-							return $author$project$Main$UpMsg;
-						})
+						$joakin$elm_canvas$Canvas$Settings$stroke($avh4$elm_color$Color$blue)
 					]),
+				_Utils_ap(
+					horiz(0),
+					vert(0)))
+			]);
+	}();
+	var _v1 = _Utils_Tuple2(
+		$elm$core$Basics$floor(width),
+		$elm$core$Basics$floor(height));
+	var cWidth = _v1.a;
+	var cHeight = _v1.b;
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		_List_fromArray(
+			[
 				A2(
-					$elm$core$List$cons,
-					A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
-					contents)),
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+						A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
+						A2($elm$html$Html$Attributes$style, 'align-items', 'center')
+					]),
+				_List_fromArray(
+					[
+						A3(
+						$joakin$elm_canvas$Canvas$toHtmlWith,
+						{
+							height: cHeight,
+							textures: _List_fromArray(
+								[
+									A2($joakin$elm_canvas$Canvas$Texture$loadFromImageUrl, url, $author$project$Main$TextureLoaded),
+									A2($joakin$elm_canvas$Canvas$Texture$loadFromImageUrl, blobUrl, $author$project$Main$BlobLoaded)
+								]),
+							width: cWidth
+						},
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('canvas'),
+								$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onDown(
+								function (event) {
+									return $author$project$Main$DownMsg(event.offsetPos);
+								}),
+								$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onMove(
+								function (event) {
+									return $author$project$Main$MoveMsg(event.offsetPos);
+								}),
+								$mpizenberg$elm_pointer_events$Html$Events$Extra$Mouse$onUp(
+								function (_v2) {
+									return $author$project$Main$UpMsg;
+								})
+							]),
+						A2(
+							$elm$core$List$cons,
+							A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
+							_Utils_ap(
+								contents,
+								model.showGrid ? grid : _List_Nil))),
+						A2(
+						$elm$html$Html$div,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick(
+										$author$project$Main$LoadTex('./assets/image.jpg'))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Load example')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$Main$Stamp)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Stamp')
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$label,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$for('chkGrid')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Show Grid')
+											])),
+										A2(
+										$elm$html$Html$input,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$type_('checkbox'),
+												$elm$html$Html$Attributes$id('chkGrid'),
+												A2(
+												$elm$html$Html$Events$on,
+												'change',
+												A2($elm$json$Json$Decode$map, $author$project$Main$ChangeGrid, $author$project$Main$checkboxDecoder)),
+												$elm$html$Html$Attributes$checked(model.showGrid)
+											]),
+										_List_Nil)
+									])),
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('file'),
+										A2(
+										$elm$html$Html$Events$on,
+										'change',
+										A2($elm$json$Json$Decode$map, $author$project$Main$processFile, $author$project$Main$filesDecoder))
+									]),
+								_List_Nil),
+								A2(
+								$elm$html$Html$input,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$type_('number'),
+										$elm$html$Html$Events$onInput($author$project$Main$processRecSteps),
+										$elm$html$Html$Attributes$value(
+										$elm$core$Debug$toString(recSteps))
+									]),
+								_List_Nil),
+								selectionMenu,
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick(
+										$author$project$Main$ClearSelection($author$project$Main$ClearOne))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Clear')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick(
+										$author$project$Main$ClearSelection($author$project$Main$ClearAll))
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Clear All')
+									]))
+							]))
+					])),
 				A2(
 				$elm$html$Html$div,
 				_List_Nil,
 				_List_fromArray(
 					[
-						A2(
-						$elm$html$Html$button,
+						A3(
+						$joakin$elm_canvas$Canvas$toHtml,
+						_Utils_Tuple2(cWidth, cHeight),
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick(
-								$author$project$Main$LoadTex('./assets/image.jpg'))
+								$elm$html$Html$Attributes$id('initcanvas')
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Load example')
+								A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
+								initialRender
 							])),
-						A2(
-						$elm$html$Html$button,
+						A3(
+						$joakin$elm_canvas$Canvas$toHtml,
+						_Utils_Tuple2(cWidth, cHeight),
 						_List_fromArray(
 							[
-								$elm$html$Html$Events$onClick($author$project$Main$Stamp)
+								$elm$html$Html$Attributes$id('sourcecanvas')
 							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Stamp')
-							])),
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$type_('file'),
-								A2(
-								$elm$html$Html$Events$on,
-								'change',
-								A2($elm$json$Json$Decode$map, $author$project$Main$processFile, $author$project$Main$filesDecoder))
-							]),
-						_List_Nil),
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$type_('number'),
-								$elm$html$Html$Events$onInput($author$project$Main$processRecSteps),
-								$elm$html$Html$Attributes$value(
-								$elm$core$Debug$toString(recSteps))
-							]),
-						_List_Nil),
-						selectionMenu,
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick(
-								$author$project$Main$ClearSelection($author$project$Main$ClearOne))
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Clear')
-							])),
-						A2(
-						$elm$html$Html$button,
-						_List_fromArray(
-							[
-								$elm$html$Html$Events$onClick(
-								$author$project$Main$ClearSelection($author$project$Main$ClearAll))
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Clear All')
-							]))
+						_Utils_ap(
+							_List_fromArray(
+								[
+									A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
+									sourceRender
+								]),
+							grid))
 					]))
 			]));
 };
@@ -7762,9 +7987,7 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 		init: function (_v0) {
 			return _Utils_Tuple2($author$project$Main$initialModel, $elm$core$Platform$Cmd$none);
 		},
-		subscriptions: function (_v1) {
-			return $elm$core$Platform$Sub$none;
-		},
+		subscriptions: $author$project$Main$subscriptions,
 		update: $author$project$Main$update,
 		view: $author$project$Main$view
 	});

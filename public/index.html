@@ -13,12 +13,25 @@
 </head>
 
 <body>
+  <image id="img" style="display: none;"></image>
+  <script>
+    img.onload = function () { console.log("image!"); }
+  </script>
   <main></main>
   <script src="./elm-canvas.js"></script>
   <script src="./elm.js"></script>
   <script>
     var app = Elm.Main.init({ node: document.querySelector("main") });
-      // you can use ports and stuff here
+
+    app.ports.updateSource.subscribe(function () {
+      const c = document.getElementById('initcanvas').children[0];
+      c.toBlob(function (blob) {
+        // https://stackoverflow.com/a/27737668
+        const urlCreator = window.URL || window.webkitURL;
+        const blobUrl = urlCreator.createObjectURL(blob);
+        app.ports.blobReceiver.send(blobUrl);
+      });
+    });
   </script>
 </body>
 <footer>

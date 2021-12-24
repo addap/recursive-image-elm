@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main)
 
 import Browser
 import Canvas exposing (Point, Renderable, circle, group, lineTo, path, rect, shapes, texture)
@@ -10,7 +10,7 @@ import Color exposing (Color)
 import Debug exposing (toString)
 import File exposing (File)
 import Html exposing (Html, button, div, input, label, source, text)
-import Html.Attributes exposing (checked, for, id, style, type_, value)
+import Html.Attributes exposing (checked, for, id, style, type_, value, width)
 import Html.Events exposing (on, onClick, onInput)
 import Html.Events.Extra.Drag exposing (startPortData)
 import Html.Events.Extra.Mouse as Mouse
@@ -20,6 +20,10 @@ import Task
 import Tuple exposing (first, second)
 import Util exposing (iter, iterCollect, list_mapi, trunc_tail)
 import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
+
+
+
+-- TYPES
 
 
 {-| The model of this app. It encapsulates the menu flags as well as the state of the canvas.
@@ -41,13 +45,87 @@ type alias Model =
     { tex : Maybe Texture
     , renders : List Renderable
     , initialRender : Renderable
+    , sourceRender : Renderable
     , cDim : Point
     , aspectM : Maybe Float
     , selections : Zipper Selection
     , dragging : Bool
     , url : String
+    , blobUrl : String
     , recSteps : Int
+    , showGrid : Bool
     }
+
+
+{-|
+
+  - TextureLoaded : signalled by canvas when new texture is loaded after url was updated.
+  - BlobLoaded : signalled by update when the blob received from Javascript is ready
+  - LoadTex : The url should be updated.
+  - LoadCustomTex : The given file should become the new texture.
+  - DownMsg : The mouse is pressed on the canvas.
+  - MoveMsg : The mouse moves over the canvas.
+  - UpMsg : The mouse is released on teh canvas.
+  - ChangeRecursion : The recursion steps should be updated.
+  - Reload : Application should reload.
+  - ResetRenders : Application should throw away non-stamped progress.
+  - Stamp : initialRenders should be updated to current renders, thus saving progress.
+
+-}
+type Msg
+    = TextureLoaded (Maybe Texture)
+    | BlobLoaded (Maybe Texture)
+    | LoadTex String
+    | LoadCustomTex File
+    | DownMsg ( Float, Float )
+    | MoveMsg ( Float, Float )
+    | UpMsg
+    | ChangeRecursion Int
+    | Reload
+    | ResetRenders
+    | Stamp
+    | NextSelection
+    | PrevSelection
+    | ClearSelection ClearAmount
+    | ReceiveBlob String
+    | ChangeGrid Bool
+
+
+type ClearAmount
+    = ClearOne
+    | ClearAll
+
+
+
+-- MAIN
+
+
+main : Program () Model Msg
+main =
+    Browser.element
+        { init = \_ -> ( initialModel, Cmd.none )
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
+
+
+
+-- PORTS
+
+
+{-| Tell JS that the source was updated so it should convert the initialRender to a blob.
+-}
+port updateSource : () -> Cmd msg
+
+
+{-| Receive the blob of the initialRender from JS.
+-}
+port blobReceiver : (String -> msg) -> Sub msg
+
+
+
+-- INIT
 
 
 initialModel : Model
@@ -64,76 +142,32 @@ initialModel =
 
         selections =
             mkZipper sourceSel sinkSels
+
+        initialRender =
+            clearCanvas canvasDim Color.lightGrey
     in
     { tex = Nothing
     , renders = []
-    , initialRender = clearCanvas canvasDim Color.lightGrey
+    , initialRender = initialRender
+    , sourceRender = initialRender
     , cDim = canvasDim
     , aspectM = Nothing
     , selections = selections
     , dragging = False
     , url = ""
+    , blobUrl = ""
     , recSteps = 1
+    , showGrid = True
     }
 
 
-getActiveAspect : Model -> Float
-getActiveAspect { aspectM, cDim } =
-    case aspectM of
-        Just asp ->
-            asp
 
-        Nothing ->
-            let
-                ( w, h ) =
-                    cDim
-            in
-            w / h
+-- SUBSCRIPTIONS
 
 
-{-|
-
-  - TextureLoaded : signalled by canvas when new texture is loaded after url was updated.
-  - LoadTex : The url should be updated.
-  - LoadCustomTex : The given file should become the new texture.
-  - DownMsg : The mouse is pressed on the canvas.
-  - MoveMsg : The mouse moves over the canvas.
-  - UpMsg : The mouse is released on teh canvas.
-  - ChangeRecursion : The recursion steps should be updated.
-  - Reload : Application should reload.
-  - ResetRenders : Application should throw away non-stamped progress.
-  - Stamp : initialRenders should be updated to current renders, thus saving progress.
-
--}
-type Msg
-    = TextureLoaded (Maybe Texture)
-    | LoadTex String
-    | LoadCustomTex File
-    | DownMsg ( Float, Float )
-    | MoveMsg ( Float, Float )
-    | UpMsg
-    | ChangeRecursion Int
-    | Reload
-    | ResetRenders
-    | Stamp
-    | NextSelection
-    | PrevSelection
-    | ClearSelection ClearAmount
-
-
-type ClearAmount
-    = ClearOne
-    | ClearAll
-
-
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = \_ -> ( initialModel, Cmd.none )
-        , view = view
-        , update = update
-        , subscriptions = \_ -> Sub.none
-        }
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    blobReceiver ReceiveBlob
 
 
 
@@ -193,13 +227,19 @@ main =
 --     { model | renders = renders ++ newRenders }
 
 
-addRecursion2 : Float -> Point -> List Rect -> List Renderable -> List Renderable
-addRecursion2 width ( x1, y1 ) rects renders =
+addRecursion2 : Float -> Float -> Point -> List Rect -> List Renderable -> List Renderable
+addRecursion2 cWidth width ( x1, y1 ) rects renders =
     let
         copy r =
             let
                 s =
                     R.getWidth r / width
+
+                s2 =
+                    width / cWidth
+
+                _ =
+                    Debug.log "(s, s2) = " ( s, s2 )
 
                 _ =
                     Debug.log "(x1, y1) = " ( x1, y1 )
@@ -207,8 +247,10 @@ addRecursion2 width ( x1, y1 ) rects renders =
                 _ =
                     Debug.log "r.(x1, y1) = " ( r.x1, r.y1 )
             in
+            -- group [ transform [ translate (r.x1 - x1) (r.y1 - y1) ] ] renders
             group [ transform [ translate (r.x1 - x1) (r.y1 - y1), scale s s ] ] renders
 
+        -- group [ transform [ scale (1 / s2) (1 / s2), translate -x1 -y1, translate r.x1 r.y1, scale (s * s2) (s * s2) ] ] renders
         newRenders =
             List.map copy rects
     in
@@ -223,7 +265,7 @@ This is done iteratively:
 
 -}
 addRecursions2 : Model -> Model
-addRecursions2 ({ initialRender, renders, cDim, selections, recSteps } as model) =
+addRecursions2 ({ sourceRender, renders, cDim, selections, recSteps } as model) =
     let
         ( cWidth, cHeight ) =
             cDim
@@ -243,15 +285,14 @@ addRecursions2 ({ initialRender, renders, cDim, selections, recSteps } as model)
                 )
                 (Z.toList selections)
 
-        sourceRender =
-            -- this does not work since the aspect ratio is changed so after 2 recursion steps nothing lines up anymore
-            -- group [ transform [ translate sourceRect.x1 sourceRect.y1, scale (R.getWidth sourceRect / cWidth) (R.getHeight sourceRect / cHeight) ] ] [ initialRender ]
-            -- If I can get a cutout from initialRender then the scaling login in addRecursion2 should just work
-            initialRender
-
+        -- sourceRender =
+        -- this does not work since the aspect ratio is changed so after 2 recursion steps nothing lines up anymore
+        -- group [ transform [ translate sourceRect.x1 sourceRect.y1, scale (R.getWidth sourceRect / cWidth) (R.getHeight sourceRect / cHeight) ] ] [ initialRender ]
+        -- If I can get a cutout from initialRender then the scaling login in addRecursion2 should just work
+        -- initialRender
         -- trunc_tail to throw away the initialRenders
         newRenders =
-            trunc_tail (iterCollect recSteps (addRecursion2 (R.getWidth sourceRect) (R.getC R.UL sourceRect) sinkRects) [ sourceRender ])
+            trunc_tail (iterCollect recSteps (addRecursion2 cWidth (R.getWidth sourceRect) (R.getC R.UL sourceRect) sinkRects) [ sourceRender ])
     in
     { model | renders = renders ++ List.concat newRenders }
 
@@ -286,7 +327,7 @@ update msg model =
                 model |> lm
 
         UpMsg ->
-            upSelection model |> lm
+            upSelection model
 
         LoadTex url ->
             let
@@ -368,6 +409,50 @@ update msg model =
             in
             { model | selections = selections, aspectM = aspectM } |> updateRenders |> lm
 
+        ReceiveBlob blobUrl ->
+            let
+                _ =
+                    Debug.log "receiveblob!" ()
+            in
+            { model | blobUrl = blobUrl } |> lm
+
+        BlobLoaded tex ->
+            case tex of
+                Nothing ->
+                    let
+                        _ =
+                            Debug.log "blob failed" ()
+                    in
+                    model |> lm
+
+                Just t ->
+                    let
+                        _ =
+                            Debug.log "blob!" t
+
+                        { width, height } =
+                            T.dimensions t
+
+                        -- compute the scaling factor so that the new image fits into the canvas width
+                        s =
+                            first initialModel.cDim / width
+
+                        sourceRect =
+                            (Z.getFirst model.selections).rect
+
+                        newSource =
+                            texture [ transform [ translate sourceRect.x1 sourceRect.y1, scale s s ] ]
+                                -- ( sourceRect.x1 / s, sourceRect.y1 / s )
+                                ( 0, 0 )
+                                (T.sprite { x = sourceRect.x1 / s, y = sourceRect.y1 / s, width = R.getWidth sourceRect / s, height = R.getHeight sourceRect / s }
+                                    t
+                                )
+                    in
+                    { model | sourceRender = newSource } |> updateRenders |> lm
+
+        ChangeGrid b ->
+            { model | showGrid = b } |> lm
+
 
 {-| Initialize the renders of a model from a texture.
 -}
@@ -395,10 +480,11 @@ initRenders tex model =
                 canvasRect =
                     mkRect ( 0, 0 ) cDim
 
+                -- assumes that the focus selection of the initialModel is the source selection
                 selections =
                     Z.modify (\sel -> { sel | rect = canvasRect, initialRect = canvasRect }) initialModel.selections
             in
-            { initialModel | tex = tex, url = model.url, cDim = cDim, initialRender = newtex, renders = [ newtex ], selections = selections }
+            { initialModel | tex = tex, url = model.url, cDim = cDim, initialRender = newtex, sourceRender = newtex, renders = [ newtex ], selections = selections }
 
 
 resetRenders : Model -> Model
@@ -406,7 +492,7 @@ resetRenders model =
     { model | renders = [ model.initialRender ] }
 
 
-upSelection : Model -> Model
+upSelection : Model -> ( Model, Cmd Msg )
 upSelection model =
     let
         -- we pass in aspectM so that the rectangle can be scaled in case we have an aspect
@@ -432,8 +518,24 @@ upSelection model =
 
                     else
                         Nothing
+
+        newModel =
+            { model | dragging = False, selections = selections, aspectM = aspectM }
     in
-    { model | dragging = False, selections = selections, aspectM = aspectM } |> updateRenders
+    case focusSel.mode of
+        SelectionSink _ ->
+            newModel |> updateRenders |> lm
+
+        SelectionSource ->
+            let
+                _ =
+                    Debug.log "ask blob" ()
+            in
+            ( newModel, updateSource () )
+
+
+
+-- VIEW
 
 
 print : String -> Renderable
@@ -447,8 +549,37 @@ renderSelections aspectM selections =
 
 
 view : Model -> Html Msg
-view ({ tex, renders, cDim, selections, url, aspectM, recSteps } as model) =
+view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initialRender, sourceRender } as model) =
     let
+        ( width, height ) =
+            cDim
+
+        ( cWidth, cHeight ) =
+            ( floor width, floor height )
+
+        gridStep =
+            25
+
+        grid =
+            let
+                horiz y =
+                    if y <= height then
+                        path ( 0, y ) [ lineTo ( width, y ) ] :: horiz (y + gridStep)
+
+                    else
+                        []
+
+                vert x =
+                    if x <= width then
+                        path ( x, 0 ) [ lineTo ( x, height ) ] :: vert (x + gridStep)
+
+                    else
+                        []
+            in
+            [ shapes [ stroke Color.blue ]
+                (horiz 0 ++ vert 0)
+            ]
+
         contents =
             case tex of
                 Nothing ->
@@ -498,53 +629,81 @@ view ({ tex, renders, cDim, selections, url, aspectM, recSteps } as model) =
                 , button [ onClick NextSelection ] [ text "Next" ]
                 ]
     in
-    div
-        [ style "display" "flex"
-        , style "justify-content" "center"
-        , style "align-items" "center"
-        ]
-        [ Canvas.toHtmlWith
-            { width = floor (first cDim)
-            , height = floor (second cDim)
-            , textures = [ T.loadFromImageUrl url TextureLoaded ]
-            }
-            [ Mouse.onDown (\event -> DownMsg event.offsetPos)
-            , Mouse.onMove (\event -> MoveMsg event.offsetPos)
-            , Mouse.onUp (\_ -> UpMsg)
+    div []
+        [ div
+            [ style "display" "flex"
+            , style "justify-content" "center"
+            , style "align-items" "center"
             ]
-            (clearCanvas cDim Color.lightGrey :: contents)
+            [ Canvas.toHtmlWith
+                { width = cWidth
+                , height = cHeight
+                , textures = [ T.loadFromImageUrl url TextureLoaded, T.loadFromImageUrl blobUrl BlobLoaded ]
+                }
+                [ id "canvas"
+                , Mouse.onDown (\event -> DownMsg event.offsetPos)
+                , Mouse.onMove (\event -> MoveMsg event.offsetPos)
+                , Mouse.onUp (\_ -> UpMsg)
+                ]
+                (clearCanvas cDim Color.lightGrey
+                    :: contents
+                    ++ (if model.showGrid then
+                            grid
+
+                        else
+                            []
+                       )
+                )
+
+            -- a hidden canvas displaying the initialRender so that JS can access it.
+            , div []
+                [ button [ onClick (LoadTex "./assets/image.jpg") ] [ text "Load example" ]
+                , button [ onClick Stamp ] [ text "Stamp" ]
+                , div []
+                    [ label [ for "chkGrid" ] [ text "Show Grid" ]
+                    , input
+                        [ type_ "checkbox"
+                        , id "chkGrid"
+                        , on "change" (D.map ChangeGrid checkboxDecoder)
+                        , checked model.showGrid
+                        ]
+                        []
+                    ]
+                , input
+                    [ type_ "file"
+                    , on "change" (D.map processFile filesDecoder)
+                    ]
+                    []
+                , input
+                    [ type_ "number"
+                    , onInput processRecSteps
+
+                    -- somehow the on "input" does not work, no events are fired
+                    -- a.d. I think the decoder gets the whole even so I need something like checkboxDecoder
+                    --   , on "input" (D.map ChangeRecursion D.int)
+                    , value (toString recSteps)
+                    ]
+                    []
+                , selectionMenu
+                , button [ onClick (ClearSelection ClearOne) ] [ text "Clear" ]
+                , button [ onClick (ClearSelection ClearAll) ] [ text "Clear All" ]
+                ]
+            ]
         , div []
-            [ button [ onClick (LoadTex "./assets/image.jpg") ] [ text "Load example" ]
-            , button [ onClick Stamp ] [ text "Stamp" ]
+            [ Canvas.toHtml ( cWidth, cHeight )
+                [ id "initcanvas"
 
-            -- , div []
-            --     [ label [ for "chkFocus" ] [ text "Focus" ]
-            --     , input
-            --         [ type_ "checkbox"
-            --         , id "chkFocus"
-            --         , on "change" (D.map ChangeFocus checkboxDecoder)
-            --         , checked model.focussed
-            --         ]
-            --         []
-            --     ]
-            , input
-                [ type_ "file"
-                , on "change" (D.map processFile filesDecoder)
+                -- , style "display" "none"
                 ]
-                []
-            , input
-                [ type_ "number"
-                , onInput processRecSteps
+                [ clearCanvas cDim Color.lightGrey, initialRender ]
+            , Canvas.toHtml ( cWidth, cHeight )
+                [ id "sourcecanvas"
 
-                -- somehow the on "input" does not work, no events are fired
-                -- a.d. I think the decoder gets the whole even so I need something like checkboxDecoder
-                --   , on "input" (D.map ChangeRecursion D.int)
-                , value (toString recSteps)
+                -- , style "display" "none"
                 ]
-                []
-            , selectionMenu
-            , button [ onClick (ClearSelection ClearOne) ] [ text "Clear" ]
-            , button [ onClick (ClearSelection ClearAll) ] [ text "Clear All" ]
+                ([ clearCanvas cDim Color.lightGrey, sourceRender ]
+                    ++ grid
+                )
             ]
         ]
 
@@ -588,3 +747,18 @@ checkboxDecoder =
 -- relativePos : Pointer.Event -> ( Float, Float )
 -- relativePos event =
 --     event.pointer.offsetPos
+-- MISC
+
+
+getActiveAspect : Model -> Float
+getActiveAspect { aspectM, cDim } =
+    case aspectM of
+        Just asp ->
+            asp
+
+        Nothing ->
+            let
+                ( w, h ) =
+                    cDim
+            in
+            w / h
