@@ -5277,10 +5277,10 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$element = _Browser_element;
-var $author$project$Rect$SelectionSink = function (a) {
+var $author$project$Selection$SelectionSink = function (a) {
 	return {$: 'SelectionSink', a: a};
 };
-var $author$project$Rect$SelectionSource = {$: 'SelectionSource'};
+var $author$project$Selection$SelectionSource = {$: 'SelectionSource'};
 var $avh4$elm_color$Color$RgbaSpace = F4(
 	function (a, b, c, d) {
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
@@ -5452,7 +5452,7 @@ var $author$project$Main$clearCanvas = F2(
 	});
 var $avh4$elm_color$Color$green = A4($avh4$elm_color$Color$RgbaSpace, 115 / 255, 210 / 255, 22 / 255, 1.0);
 var $avh4$elm_color$Color$lightGrey = A4($avh4$elm_color$Color$RgbaSpace, 238 / 255, 238 / 255, 236 / 255, 1.0);
-var $author$project$Rect$mkSelection = F3(
+var $author$project$Selection$mkSelection = F3(
 	function (color, mode, initialRect) {
 		return {color: color, initialRect: initialRect, mode: mode, rect: initialRect};
 	});
@@ -5485,14 +5485,14 @@ var $author$project$Rect$origin = _Utils_Tuple2(-1, -1);
 var $author$project$Rect$rectEmpty = A2($author$project$Rect$mkRect, $author$project$Rect$origin, $author$project$Rect$origin);
 var $avh4$elm_color$Color$red = A4($avh4$elm_color$Color$RgbaSpace, 204 / 255, 0 / 255, 0 / 255, 1.0);
 var $author$project$Main$initialModel = function () {
-	var sourceSel = A3($author$project$Rect$mkSelection, $avh4$elm_color$Color$black, $author$project$Rect$SelectionSource, $author$project$Rect$rectEmpty);
+	var sourceSel = A3($author$project$Selection$mkSelection, $avh4$elm_color$Color$black, $author$project$Selection$SelectionSource, $author$project$Rect$rectEmpty);
 	var sinkSels = A2(
 		$elm$core$List$map,
 		function (c) {
 			return A3(
-				$author$project$Rect$mkSelection,
+				$author$project$Selection$mkSelection,
 				c,
-				$author$project$Rect$SelectionSink(false),
+				$author$project$Selection$SelectionSink(false),
 				$author$project$Rect$rectEmpty);
 		},
 		_List_fromArray(
@@ -5504,53 +5504,20 @@ var $author$project$Main$initialModel = function () {
 }();
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Main$ReceiveBlob = function (a) {
-	return {$: 'ReceiveBlob', a: a};
+var $author$project$Main$ReceiveSourceBlob = function (a) {
+	return {$: 'ReceiveSourceBlob', a: a};
 };
 var $elm$json$Json$Decode$string = _Json_decodeString;
-var $author$project$Main$blobReceiver = _Platform_incomingPort('blobReceiver', $elm$json$Json$Decode$string);
+var $author$project$Main$sourceBlobReceiver = _Platform_incomingPort('sourceBlobReceiver', $elm$json$Json$Decode$string);
 var $author$project$Main$subscriptions = function (_v0) {
-	return $author$project$Main$blobReceiver($author$project$Main$ReceiveBlob);
+	return $author$project$Main$sourceBlobReceiver($author$project$Main$ReceiveSourceBlob);
 };
+var $author$project$Main$ClearAll = {$: 'ClearAll'};
 var $author$project$Main$LoadTex = function (a) {
 	return {$: 'LoadTex', a: a};
 };
 var $author$project$Zipper$Next = {$: 'Next'};
 var $author$project$Zipper$Prev = {$: 'Prev'};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$Basics$not = _Basics_not;
-var $elm$core$List$all = F2(
-	function (isOkay, list) {
-		return !A2(
-			$elm$core$List$any,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
-			list);
-	});
 var $joakin$elm_canvas$Canvas$Texture$dimensions = function (texture) {
 	if (texture.$ === 'TImage') {
 		var image = texture.a;
@@ -5963,22 +5930,42 @@ var $author$project$Main$changeSource = F2(
 					{sourceRender: newSource}));
 		}
 	});
-var $author$project$Rect$setActive = F2(
+var $author$project$Selection$setActive = F2(
 	function (b, mode) {
 		if (mode.$ === 'SelectionSource') {
-			return $author$project$Rect$SelectionSource;
+			return $author$project$Selection$SelectionSource;
 		} else {
-			return $author$project$Rect$SelectionSink(b);
+			return $author$project$Selection$SelectionSink(b);
 		}
 	});
-var $author$project$Rect$deactivate = function (sel) {
+var $author$project$Selection$deactivate = function (sel) {
 	return _Utils_update(
 		sel,
 		{
-			mode: A2($author$project$Rect$setActive, false, sel.mode),
+			mode: A2($author$project$Selection$setActive, false, sel.mode),
 			rect: sel.initialRect
 		});
 };
+var $author$project$Selection$isActive = function (sel) {
+	var _v0 = sel.mode;
+	if (_v0.$ === 'SelectionSource') {
+		return true;
+	} else {
+		var b = _v0.a;
+		return b;
+	}
+};
+var $author$project$Zipper$map = F2(
+	function (f, _v0) {
+		var prev = _v0.prev;
+		var focus = _v0.focus;
+		var next = _v0.next;
+		return {
+			focus: f(focus),
+			next: A2($elm$core$List$map, f, next),
+			prev: A2($elm$core$List$map, f, prev)
+		};
+	});
 var $author$project$Zipper$modify = F2(
 	function (f, z) {
 		return _Utils_update(
@@ -5987,6 +5974,85 @@ var $author$project$Zipper$modify = F2(
 				focus: f(z.focus)
 			});
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
+var $author$project$Selection$isCleared = function (_v0) {
+	var rect = _v0.rect;
+	var initialRect = _v0.initialRect;
+	return _Utils_eq(rect, initialRect);
+};
+var $author$project$Main$updateAspect = function (model) {
+	var aspectM = function () {
+		if (A2(
+			$elm$core$List$all,
+			$author$project$Selection$isCleared,
+			$author$project$Zipper$toList(model.selections))) {
+			var _v0 = A2($elm$core$Debug$log, 'all clear', _Utils_Tuple0);
+			return $elm$core$Maybe$Nothing;
+		} else {
+			return model.aspectM;
+		}
+	}();
+	return _Utils_update(
+		model,
+		{aspectM: aspectM});
+};
+var $author$project$Main$clearSelections = F2(
+	function (ca, model) {
+		var selections = function () {
+			if (ca.$ === 'ClearOne') {
+				return A2($author$project$Zipper$modify, $author$project$Selection$deactivate, model.selections);
+			} else {
+				return A2($author$project$Zipper$map, $author$project$Selection$deactivate, model.selections);
+			}
+		}();
+		var sourceRender = $author$project$Selection$isActive(
+			$author$project$Zipper$getFirst(selections)) ? model.initialRender : model.sourceRender;
+		return $author$project$Main$updateAspect(
+			_Utils_update(
+				model,
+				{selections: selections, sourceRender: sourceRender}));
+	});
+var $author$project$Selection$isSource = function (_v0) {
+	var mode = _v0.mode;
+	if (mode.$ === 'SelectionSource') {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $author$project$Main$initRenders = F2(
 	function (tex, model) {
 		if (tex.$ === 'Nothing') {
@@ -6003,11 +6069,11 @@ var $author$project$Main$initRenders = F2(
 				_Utils_Tuple2(0, 0),
 				cDim);
 			var selections = A2(
-				$author$project$Zipper$modify,
+				$author$project$Zipper$map,
 				function (sel) {
-					return _Utils_update(
+					return $author$project$Selection$isSource(sel) ? _Utils_update(
 						sel,
-						{initialRect: canvasRect, rect: canvasRect});
+						{initialRect: canvasRect, rect: canvasRect}) : sel;
 				},
 				$author$project$Main$initialModel.selections);
 			var newtex = A3(
@@ -6039,17 +6105,6 @@ var $author$project$Main$initRenders = F2(
 var $author$project$Main$lm = function (m) {
 	return _Utils_Tuple2(m, $elm$core$Platform$Cmd$none);
 };
-var $author$project$Zipper$map = F2(
-	function (f, _v0) {
-		var prev = _v0.prev;
-		var focus = _v0.focus;
-		var next = _v0.next;
-		return {
-			focus: f(focus),
-			next: A2($elm$core$List$map, f, next),
-			prev: A2($elm$core$List$map, f, prev)
-		};
-	});
 var $author$project$Zipper$move = F2(
 	function (m, z) {
 		var prev = z.prev;
@@ -6085,21 +6140,16 @@ var $author$project$Zipper$move = F2(
 			}
 		}
 	});
-var $author$project$Rect$selDown = F2(
+var $author$project$Selection$selDown = F2(
 	function (p, sel) {
 		return _Utils_update(
 			sel,
 			{
-				mode: A2($author$project$Rect$setActive, true, sel.mode),
+				mode: A2($author$project$Selection$setActive, true, sel.mode),
 				rect: A2($author$project$Rect$mkRect, p, p)
 			});
 	});
-var $author$project$Rect$selIsCleared = function (_v0) {
-	var rect = _v0.rect;
-	var initialRect = _v0.initialRect;
-	return _Utils_eq(rect, initialRect);
-};
-var $author$project$Rect$selMove = F2(
+var $author$project$Selection$selMove = F2(
 	function (_v0, sel) {
 		var x2 = _v0.a;
 		var y2 = _v0.b;
@@ -6123,15 +6173,6 @@ var $author$project$Rect$getAspect = function (r) {
 var $author$project$Zipper$getFocus = function (_v0) {
 	var focus = _v0.focus;
 	return focus;
-};
-var $author$project$Rect$selIsActive = function (sel) {
-	var _v0 = sel.mode;
-	if (_v0.$ === 'SelectionSource') {
-		return true;
-	} else {
-		var b = _v0.a;
-		return b;
-	}
 };
 var $author$project$Rect$mkRectDim = F2(
 	function (_v0, _v1) {
@@ -6169,10 +6210,10 @@ var $author$project$Rect$fitRectAspect = F2(
 			_Utils_Tuple2(x1, y1),
 			_Utils_Tuple2(dXRefl, dY));
 	});
-var $author$project$Rect$selUp = F2(
+var $author$project$Selection$selUp = F2(
 	function (aspectM, sel) {
 		if (($author$project$Rect$getWidth(sel.rect) < 1) || ($author$project$Rect$getHeight(sel.rect) < 1)) {
-			return $author$project$Rect$deactivate(sel);
+			return $author$project$Selection$deactivate(sel);
 		} else {
 			var aspectRect = function () {
 				if (aspectM.$ === 'Nothing') {
@@ -6188,15 +6229,15 @@ var $author$project$Rect$selUp = F2(
 		}
 	});
 var $elm$json$Json$Encode$null = _Json_encodeNull;
-var $author$project$Main$updateSource = _Platform_outgoingPort(
-	'updateSource',
+var $author$project$Main$updateSourceBlob = _Platform_outgoingPort(
+	'updateSourceBlob',
 	function ($) {
 		return $elm$json$Json$Encode$null;
 	});
 var $author$project$Main$upSelection = function (model) {
 	var selections = A2(
 		$author$project$Zipper$modify,
-		$author$project$Rect$selUp(model.aspectM),
+		$author$project$Selection$selUp(model.aspectM),
 		model.selections);
 	var focusSel = $author$project$Zipper$getFocus(selections);
 	var aspectM = function () {
@@ -6204,7 +6245,7 @@ var $author$project$Main$upSelection = function (model) {
 		if (_v2.$ === 'Just') {
 			return model.aspectM;
 		} else {
-			if ($author$project$Rect$selIsActive(focusSel)) {
+			if ($author$project$Selection$isActive(focusSel)) {
 				var _v3 = A2($elm$core$Debug$log, 'set new aspect', _Utils_Tuple0);
 				return $elm$core$Maybe$Just(
 					$author$project$Rect$getAspect(focusSel.rect));
@@ -6224,9 +6265,14 @@ var $author$project$Main$upSelection = function (model) {
 		var _v1 = A2($elm$core$Debug$log, 'ask blob', _Utils_Tuple0);
 		return _Utils_Tuple2(
 			newModel,
-			$author$project$Main$updateSource(_Utils_Tuple0));
+			$author$project$Main$updateSourceBlob(_Utils_Tuple0));
 	}
 };
+var $author$project$Main$updateDownloadBlob = _Platform_outgoingPort(
+	'updateDownloadBlob',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6243,7 +6289,7 @@ var $author$project$Main$update = F2(
 							dragging: true,
 							selections: A2(
 								$author$project$Zipper$modify,
-								$author$project$Rect$selDown(p),
+								$author$project$Selection$selDown(p),
 								model.selections)
 						}));
 			case 'MoveMsg':
@@ -6254,7 +6300,7 @@ var $author$project$Main$update = F2(
 						{
 							selections: A2(
 								$author$project$Zipper$modify,
-								$author$project$Rect$selMove(p),
+								$author$project$Selection$selMove(p),
 								model.selections)
 						})) : $author$project$Main$lm(model);
 			case 'UpMsg':
@@ -6289,15 +6335,16 @@ var $author$project$Main$update = F2(
 				return $author$project$Main$lm(
 					$author$project$Main$resetRenders(model));
 			case 'Stamp':
-				var selections = A2($author$project$Zipper$map, $author$project$Rect$deactivate, model.selections);
 				return $author$project$Main$lm(
 					$author$project$Main$updateRenders(
-						_Utils_update(
-							model,
-							{
-								initialRender: A2($joakin$elm_canvas$Canvas$group, _List_Nil, model.renders),
-								selections: selections
-							})));
+						A2(
+							$author$project$Main$clearSelections,
+							$author$project$Main$ClearAll,
+							_Utils_update(
+								model,
+								{
+									initialRender: A2($joakin$elm_canvas$Canvas$group, _List_Nil, model.renders)
+								}))));
 			case 'PrevSelection':
 				var _v5 = A2($author$project$Zipper$move, $author$project$Zipper$Prev, model.selections);
 				var selections = _v5.a;
@@ -6314,32 +6361,12 @@ var $author$project$Main$update = F2(
 						{selections: selections}));
 			case 'ClearSelection':
 				var ca = msg.a;
-				var selections = function () {
-					if (ca.$ === 'ClearOne') {
-						return A2($author$project$Zipper$modify, $author$project$Rect$deactivate, model.selections);
-					} else {
-						return A2($author$project$Zipper$map, $author$project$Rect$deactivate, model.selections);
-					}
-				}();
-				var aspectM = function () {
-					if (A2(
-						$elm$core$List$all,
-						$author$project$Rect$selIsCleared,
-						$author$project$Zipper$toList(selections))) {
-						var _v7 = A2($elm$core$Debug$log, 'all clear', _Utils_Tuple0);
-						return $elm$core$Maybe$Nothing;
-					} else {
-						return model.aspectM;
-					}
-				}();
 				return $author$project$Main$lm(
 					$author$project$Main$updateRenders(
-						_Utils_update(
-							model,
-							{aspectM: aspectM, selections: selections})));
-			case 'ReceiveBlob':
+						A2($author$project$Main$clearSelections, ca, model)));
+			case 'ReceiveSourceBlob':
 				var blobUrl = msg.a;
-				var _v9 = A2($elm$core$Debug$log, 'receiveblob!', _Utils_Tuple0);
+				var _v7 = A2($elm$core$Debug$log, 'receiveblob!', blobUrl);
 				return $author$project$Main$lm(
 					_Utils_update(
 						model,
@@ -6348,12 +6375,16 @@ var $author$project$Main$update = F2(
 				var tex = msg.a;
 				return $author$project$Main$lm(
 					A2($author$project$Main$changeSource, tex, model));
-			default:
+			case 'ChangeGrid':
 				var b = msg.a;
 				return $author$project$Main$lm(
 					_Utils_update(
 						model,
 						{showGrid: b}));
+			default:
+				return _Utils_Tuple2(
+					model,
+					$author$project$Main$updateDownloadBlob(_Utils_Tuple0));
 		}
 	});
 var $author$project$Main$BlobLoaded = function (a) {
@@ -6362,7 +6393,6 @@ var $author$project$Main$BlobLoaded = function (a) {
 var $author$project$Main$ChangeGrid = function (a) {
 	return {$: 'ChangeGrid', a: a};
 };
-var $author$project$Main$ClearAll = {$: 'ClearAll'};
 var $author$project$Main$ClearOne = {$: 'ClearOne'};
 var $author$project$Main$ClearSelection = function (a) {
 	return {$: 'ClearSelection', a: a};
@@ -6370,6 +6400,7 @@ var $author$project$Main$ClearSelection = function (a) {
 var $author$project$Main$DownMsg = function (a) {
 	return {$: 'DownMsg', a: a};
 };
+var $author$project$Main$Download = {$: 'Download'};
 var $author$project$Main$MoveMsg = function (a) {
 	return {$: 'MoveMsg', a: a};
 };
@@ -6748,7 +6779,7 @@ var $joakin$elm_canvas$Canvas$Settings$stroke = function (color) {
 	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp(
 		$joakin$elm_canvas$Canvas$Internal$Canvas$Stroke(color));
 };
-var $author$project$Rect$renderSelection = F2(
+var $author$project$Selection$renderSelection = F2(
 	function (aspectM, sel) {
 		var rect = function () {
 			if (aspectM.$ === 'Nothing') {
@@ -6822,7 +6853,7 @@ var $author$project$Main$renderSelections = F2(
 	function (aspectM, selections) {
 		return A2(
 			$elm$core$List$concatMap,
-			$author$project$Rect$renderSelection(aspectM),
+			$author$project$Selection$renderSelection(aspectM),
 			$author$project$Zipper$toList(selections));
 	});
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
@@ -7745,16 +7776,15 @@ var $author$project$Main$view = function (model) {
 					]))
 			]));
 	var gridStep = 25;
-	var contents = function () {
+	var cSelections = A2($author$project$Main$renderSelections, aspectM, selections);
+	var cImages = function () {
 		if (tex.$ === 'Nothing') {
 			return _List_fromArray(
 				[
 					$author$project$Main$print('Could not load texture.')
 				]);
 		} else {
-			return _Utils_ap(
-				renders,
-				A2($author$project$Main$renderSelections, aspectM, selections));
+			return renders;
 		}
 	}();
 	var _v0 = cDim;
@@ -7851,8 +7881,10 @@ var $author$project$Main$view = function (model) {
 							$elm$core$List$cons,
 							A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
 							_Utils_ap(
-								contents,
-								model.showGrid ? grid : _List_Nil))),
+								cImages,
+								_Utils_ap(
+									cSelections,
+									model.showGrid ? grid : _List_Nil)))),
 						A2(
 						$elm$html$Html$div,
 						_List_Nil,
@@ -7951,6 +7983,16 @@ var $author$project$Main$view = function (model) {
 								_List_fromArray(
 									[
 										$elm$html$Html$text('Clear All')
+									])),
+								A2(
+								$elm$html$Html$button,
+								_List_fromArray(
+									[
+										$elm$html$Html$Events$onClick($author$project$Main$Download)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Download')
 									]))
 							]))
 					])),
@@ -7985,6 +8027,25 @@ var $author$project$Main$view = function (model) {
 									sourceRender
 								]),
 							grid)),
+						A3(
+						$joakin$elm_canvas$Canvas$toHtmlWith,
+						{
+							height: cHeight,
+							textures: _List_fromArray(
+								[
+									A2($joakin$elm_canvas$Canvas$Texture$loadFromImageUrl, url, $author$project$Main$TextureLoaded),
+									A2($joakin$elm_canvas$Canvas$Texture$loadFromImageUrl, blobUrl, $author$project$Main$BlobLoaded)
+								]),
+							width: cWidth
+						},
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('downloadcanvas')
+							]),
+						A2(
+							$elm$core$List$cons,
+							A2($author$project$Main$clearCanvas, cDim, $avh4$elm_color$Color$lightGrey),
+							cImages)),
 						function () {
 						var rectSize = 2 * gridStep;
 						var origin = _Utils_Tuple2(2 * gridStep, 2 * gridStep);

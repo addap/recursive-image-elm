@@ -9,17 +9,19 @@ import Canvas.Texture as T exposing (Source, Texture)
 import Color exposing (Color)
 import Debug exposing (toString)
 import File exposing (File)
+import File.Download
 import Html exposing (Html, button, div, input, label, source, text)
 import Html.Attributes exposing (checked, for, id, style, type_, value, width)
 import Html.Events exposing (on, onClick, onInput)
 import Html.Events.Extra.Drag exposing (startPortData)
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as D
-import Rect as R exposing (Rect, Selection, SelectionMode(..), fitRectAspect, mkRect, mkRectDim, mkSelection, rectEmpty, selDown, selMove, selUp)
+import Rect as R exposing (Rect, fitRectAspect, mkRect, mkRectDim, rectEmpty)
 import Task
 import Tuple exposing (first, second)
 import Util exposing (iter, iterCollect, list_mapi, trunc_tail)
 import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
+import Selection as S exposing (Selection, SelectionMode(..), mkSelection, selDown, selMove, selUp)
 
 
 
@@ -87,8 +89,9 @@ type Msg
     | NextSelection
     | PrevSelection
     | ClearSelection ClearAmount
-    | ReceiveBlob String
+    | ReceiveSourceBlob String
     | ChangeGrid Bool
+    | Download
 
 
 type ClearAmount
@@ -116,14 +119,13 @@ main =
 
 {-| Tell JS that the source was updated so it should convert the initialRender to a blob.
 -}
-port updateSource : () -> Cmd msg
+port updateSourceBlob : () -> Cmd msg
+port updateDownloadBlob : () -> Cmd msg
 
 
 {-| Receive the blob of the initialRender from JS.
 -}
-port blobReceiver : (String -> msg) -> Sub msg
-
-
+port sourceBlobReceiver : (String -> msg) -> Sub msg
 
 -- INIT
 
@@ -135,10 +137,10 @@ initialModel =
             ( 400, 400 )
 
         sourceSel =
-            R.mkSelection Color.black R.SelectionSource rectEmpty
+            S.mkSelection Color.black S.SelectionSource rectEmpty
 
         sinkSels =
-            List.map (\c -> R.mkSelection c (R.SelectionSink False) rectEmpty) [ Color.red, Color.green, Color.blue, Color.orange ]
+            List.map (\c -> S.mkSelection c (S.SelectionSink False) rectEmpty) [ Color.red, Color.green, Color.blue, Color.orange ]
 
         selections =
             mkZipper sourceSel sinkSels
@@ -167,7 +169,7 @@ initialModel =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    blobReceiver ReceiveBlob
+    sourceBlobReceiver ReceiveSourceBlob
 
 
 
@@ -301,6 +303,42 @@ updateRenders : Model -> Model
 updateRenders model =
     resetRenders model |> addRecursions2
 
+{-| reset the aspect ratio if all selections are cleared -}
+updateAspect : Model -> Model
+updateAspect model =
+    let 
+        aspectM =
+            if List.all S.isCleared (Z.toList model.selections) then
+                let
+                    _ =
+                        Debug.log "all clear" ()
+                in
+                Nothing
+
+            else
+                model.aspectM
+    in 
+    { model | aspectM = aspectM }
+
+clearSelections : ClearAmount -> Model -> Model
+clearSelections ca model =
+    let
+        selections =
+            case ca of
+                ClearOne ->
+                    Z.modify S.deactivate model.selections
+
+                ClearAll ->
+                    Z.map S.deactivate model.selections
+        -- assumes the source is the first selection
+        sourceRender = 
+            if S.isActive (Z.getFirst selections) 
+            then model.initialRender
+            else model.sourceRender
+    in
+        
+    { model | selections = selections, sourceRender = sourceRender } |> updateAspect
+
 
 {-| Lift a model to a mode, command pair.
 -}
@@ -365,11 +403,7 @@ update msg model =
             resetRenders model |> lm
 
         Stamp ->
-            let
-                selections =
-                    Z.map R.deactivate model.selections
-            in
-            { model | initialRender = group [] model.renders, selections = selections } |> updateRenders |> lm
+            { model | initialRender = group [] model.renders } |> clearSelections ClearAll |> updateRenders |> lm
 
         PrevSelection ->
             let
@@ -386,33 +420,12 @@ update msg model =
             { model | selections = selections } |> lm
 
         ClearSelection ca ->
-            let
-                selections =
-                    case ca of
-                        ClearOne ->
-                            Z.modify R.deactivate model.selections
+            model |> clearSelections ca |> updateRenders |> lm
 
-                        ClearAll ->
-                            Z.map R.deactivate model.selections
-
-                -- reset the aspect ratio if all selections are cleared
-                aspectM =
-                    if List.all R.selIsCleared (Z.toList selections) then
-                        let
-                            _ =
-                                Debug.log "all clear" ()
-                        in
-                        Nothing
-
-                    else
-                        model.aspectM
-            in
-            { model | selections = selections, aspectM = aspectM } |> updateRenders |> lm
-
-        ReceiveBlob blobUrl ->
+        ReceiveSourceBlob blobUrl ->
             let
                 _ =
-                    Debug.log "receiveblob!" ()
+                    Debug.log "receiveblob!" blobUrl
             in
             { model | blobUrl = blobUrl } |> lm
 
@@ -421,6 +434,8 @@ update msg model =
 
         ChangeGrid b ->
             { model | showGrid = b } |> lm
+        Download -> 
+            (model, updateDownloadBlob ())
 
 
 {-| Initialize the renders of a model from a texture.
@@ -449,9 +464,10 @@ initRenders tex model =
                 canvasRect =
                     mkRect ( 0, 0 ) cDim
 
-                -- assumes that the focus selection of the initialModel is the source selection
                 selections =
-                    Z.modify (\sel -> { sel | rect = canvasRect, initialRect = canvasRect }) initialModel.selections
+                    Z.map (\sel -> if S.isSource sel 
+                                   then { sel | rect = canvasRect, initialRect = canvasRect }
+                                   else sel) initialModel.selections
             in
             { initialModel | tex = tex, url = model.url, cDim = cDim, initialRender = newtex, sourceRender = newtex, renders = [ newtex ], selections = selections }
 
@@ -514,7 +530,7 @@ upSelection model =
                     model.aspectM
 
                 Nothing ->
-                    if R.selIsActive focusSel then
+                    if S.isActive focusSel then
                         let
                             _ =
                                 Debug.log "set new aspect" ()
@@ -536,7 +552,7 @@ upSelection model =
                 _ =
                     Debug.log "ask blob" ()
             in
-            ( newModel, updateSource () )
+            ( newModel, updateSourceBlob () )
 
 
 
@@ -550,7 +566,7 @@ print str =
 
 renderSelections : Maybe Float -> Zipper Selection -> List Renderable
 renderSelections aspectM selections =
-    List.concatMap (R.renderSelection aspectM) (Z.toList selections)
+    List.concatMap (S.renderSelection aspectM) (Z.toList selections)
 
 
 view : Model -> Html Msg
@@ -584,17 +600,16 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
             [ shapes [ stroke Color.blue ]
                 (horiz 0 ++ vert 0)
             ]
-
-        contents =
+        cImages =
             case tex of
                 Nothing ->
                     [ print "Could not load texture." ]
 
                 Just _ ->
                     renders
-                        -- ++ [ print (toString startPos ++ toString curPos) ]
-                        ++ renderSelections aspectM selections
-
+        cSelections = 
+              -- ++ [ print (toString startPos ++ toString curPos) ]
+            renderSelections aspectM selections
         selectionsView =
             let
                 renderDot n ( mode, sel ) =
@@ -651,7 +666,7 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 , Mouse.onUp (\_ -> UpMsg)
                 ]
                 (clearCanvas cDim Color.lightGrey
-                    :: contents
+                    :: cImages ++ cSelections
                     ++ (if model.showGrid then
                             grid
 
@@ -692,6 +707,7 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 , selectionMenu
                 , button [ onClick (ClearSelection ClearOne) ] [ text "Clear" ]
                 , button [ onClick (ClearSelection ClearAll) ] [ text "Clear All" ]
+                , button [ onClick Download ] [ text "Download" ]
                 ]
             ]
         , div []
@@ -709,6 +725,14 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 ([ clearCanvas cDim Color.lightGrey, sourceRender ]
                     ++ grid
                 )
+            , Canvas.toHtmlWith
+                { width = cWidth
+                , height = cHeight
+                , textures = [ T.loadFromImageUrl url TextureLoaded, T.loadFromImageUrl blobUrl BlobLoaded ]
+                }
+                [ id "downloadcanvas" ]
+                (clearCanvas cDim Color.lightGrey
+                    :: cImages) 
             , let
                 rectSize =
                     2 * gridStep
