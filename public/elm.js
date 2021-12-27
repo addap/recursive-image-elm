@@ -6162,6 +6162,12 @@ var $author$project$Selection$selMove = F2(
 					{x2: x2, y2: y2})
 			});
 	});
+var $elm$json$Json$Encode$null = _Json_encodeNull;
+var $author$project$Main$startDownloadBlob = _Platform_outgoingPort(
+	'startDownloadBlob',
+	function ($) {
+		return $elm$json$Json$Encode$null;
+	});
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
@@ -6228,7 +6234,6 @@ var $author$project$Selection$selUp = F2(
 				{rect: aspectRect});
 		}
 	});
-var $elm$json$Json$Encode$null = _Json_encodeNull;
 var $author$project$Main$updateSourceBlob = _Platform_outgoingPort(
 	'updateSourceBlob',
 	function ($) {
@@ -6268,11 +6273,6 @@ var $author$project$Main$upSelection = function (model) {
 			$author$project$Main$updateSourceBlob(_Utils_Tuple0));
 	}
 };
-var $author$project$Main$updateDownloadBlob = _Platform_outgoingPort(
-	'updateDownloadBlob',
-	function ($) {
-		return $elm$json$Json$Encode$null;
-	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -6384,7 +6384,7 @@ var $author$project$Main$update = F2(
 			default:
 				return _Utils_Tuple2(
 					model,
-					$author$project$Main$updateDownloadBlob(_Utils_Tuple0));
+					$author$project$Main$startDownloadBlob(_Utils_Tuple0));
 		}
 	});
 var $author$project$Main$BlobLoaded = function (a) {

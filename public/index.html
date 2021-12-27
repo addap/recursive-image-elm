@@ -21,6 +21,14 @@
   <script src="./elm-canvas.js"></script>
   <script src="./elm.js"></script>
   <script>
+    function getTimestamp() {
+      const d = new Date();
+      const [doy, time] = d.toISOString().split('T');
+      const timeClean = time.split('.')[0].replaceAll(':', '-')
+
+      return `${doy}-${timeClean}`;
+    }
+
     var app = Elm.Main.init({ node: document.querySelector("main") });
 
     app.ports.updateSourceBlob.subscribe(function () {
@@ -33,15 +41,17 @@
       });
     }, 'image/png');
 
-    app.ports.updateDownloadBlob.subscribe(function () {
+    app.ports.startDownloadBlob.subscribe(function () {
       const c = document.getElementById('downloadcanvas').children[0];
       c.toBlob(function (blob) {
         const urlCreator = window.URL || window.webkitURL;
         const blobUrl = urlCreator.createObjectURL(blob);
+        // create a link and click it immediatly to start a download from javascript
         const a = document.createElement('a');
         a.style.display = 'none';
         a.href = blobUrl;
-        a.download = 'picture.png';
+
+        a.download = `${getTimestamp()}.png`
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(blobUrl);

@@ -17,11 +17,11 @@ import Html.Events.Extra.Drag exposing (startPortData)
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as D
 import Rect as R exposing (Rect, fitRectAspect, mkRect, mkRectDim, rectEmpty)
+import Selection as S exposing (Selection, SelectionMode(..), mkSelection, selDown, selMove, selUp)
 import Task
 import Tuple exposing (first, second)
 import Util exposing (iter, iterCollect, list_mapi, trunc_tail)
 import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
-import Selection as S exposing (Selection, SelectionMode(..), mkSelection, selDown, selMove, selUp)
 
 
 
@@ -120,12 +120,18 @@ main =
 {-| Tell JS that the source was updated so it should convert the initialRender to a blob.
 -}
 port updateSourceBlob : () -> Cmd msg
-port updateDownloadBlob : () -> Cmd msg
+
+
+{-| Tell JS to start a download of the current image.
+-}
+port startDownloadBlob : () -> Cmd msg
 
 
 {-| Receive the blob of the initialRender from JS.
 -}
 port sourceBlobReceiver : (String -> msg) -> Sub msg
+
+
 
 -- INIT
 
@@ -303,10 +309,12 @@ updateRenders : Model -> Model
 updateRenders model =
     resetRenders model |> addRecursions2
 
-{-| reset the aspect ratio if all selections are cleared -}
+
+{-| reset the aspect ratio if all selections are cleared
+-}
 updateAspect : Model -> Model
 updateAspect model =
-    let 
+    let
         aspectM =
             if List.all S.isCleared (Z.toList model.selections) then
                 let
@@ -317,8 +325,9 @@ updateAspect model =
 
             else
                 model.aspectM
-    in 
+    in
     { model | aspectM = aspectM }
+
 
 clearSelections : ClearAmount -> Model -> Model
 clearSelections ca model =
@@ -330,13 +339,15 @@ clearSelections ca model =
 
                 ClearAll ->
                     Z.map S.deactivate model.selections
+
         -- assumes the source is the first selection
-        sourceRender = 
-            if S.isActive (Z.getFirst selections) 
-            then model.initialRender
-            else model.sourceRender
+        sourceRender =
+            if S.isActive (Z.getFirst selections) then
+                model.initialRender
+
+            else
+                model.sourceRender
     in
-        
     { model | selections = selections, sourceRender = sourceRender } |> updateAspect
 
 
@@ -434,8 +445,9 @@ update msg model =
 
         ChangeGrid b ->
             { model | showGrid = b } |> lm
-        Download -> 
-            (model, updateDownloadBlob ())
+
+        Download ->
+            ( model, startDownloadBlob () )
 
 
 {-| Initialize the renders of a model from a texture.
@@ -465,9 +477,15 @@ initRenders tex model =
                     mkRect ( 0, 0 ) cDim
 
                 selections =
-                    Z.map (\sel -> if S.isSource sel 
-                                   then { sel | rect = canvasRect, initialRect = canvasRect }
-                                   else sel) initialModel.selections
+                    Z.map
+                        (\sel ->
+                            if S.isSource sel then
+                                { sel | rect = canvasRect, initialRect = canvasRect }
+
+                            else
+                                sel
+                        )
+                        initialModel.selections
             in
             { initialModel | tex = tex, url = model.url, cDim = cDim, initialRender = newtex, sourceRender = newtex, renders = [ newtex ], selections = selections }
 
@@ -600,6 +618,7 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
             [ shapes [ stroke Color.blue ]
                 (horiz 0 ++ vert 0)
             ]
+
         cImages =
             case tex of
                 Nothing ->
@@ -607,9 +626,11 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
 
                 Just _ ->
                     renders
-        cSelections = 
-              -- ++ [ print (toString startPos ++ toString curPos) ]
+
+        cSelections =
+            -- ++ [ print (toString startPos ++ toString curPos) ]
             renderSelections aspectM selections
+
         selectionsView =
             let
                 renderDot n ( mode, sel ) =
@@ -666,7 +687,8 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 , Mouse.onUp (\_ -> UpMsg)
                 ]
                 (clearCanvas cDim Color.lightGrey
-                    :: cImages ++ cSelections
+                    :: cImages
+                    ++ cSelections
                     ++ (if model.showGrid then
                             grid
 
@@ -732,7 +754,8 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 }
                 [ id "downloadcanvas" ]
                 (clearCanvas cDim Color.lightGrey
-                    :: cImages) 
+                    :: cImages
+                )
             , let
                 rectSize =
                     2 * gridStep

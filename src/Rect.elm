@@ -10,13 +10,11 @@ type alias Rect =
     { x1 : Float, y1 : Float, x2 : Float, y2 : Float }
 
 
-
 type Corner
     = UL
     | UR
     | LL
     | LR
-
 
 
 origin : Point
@@ -55,7 +53,6 @@ getHeight { y1, y2 } =
 getAspect : Rect -> Float
 getAspect r =
     getWidth r / getHeight r
-
 
 
 fitRectAspect : Float -> Rect -> Rect
@@ -101,4 +98,3 @@ getC c { x1, y1, x2, y2 } =
 
         LR ->
             ( x2, y2 )
-

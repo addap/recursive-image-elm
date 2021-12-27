@@ -1,12 +1,11 @@
-module Selection exposing (Selection, SelectionMode(..), deactivate, isSource, mkSelection, renderSelection, selDown, isActive, isCleared, selMove, selUp)
+module Selection exposing (Selection, SelectionMode(..), deactivate, isActive, isCleared, isSource, mkSelection, renderSelection, selDown, selMove, selUp)
 
-import Canvas exposing (Point, Renderable, group, lineTo, path, rect, shapes, texture)
-import Canvas.Settings exposing (fill, stroke)
-import Canvas.Settings.Advanced exposing (Transform, scale, transform, translate)
-import Canvas.Settings.Line exposing (LineJoin(..), lineDash, lineDashOffset, lineJoin, lineWidth)
+import Canvas exposing (Point, Renderable, lineTo, path, rect, shapes)
+import Canvas.Settings exposing (stroke)
+import Canvas.Settings.Line exposing (LineJoin(..), lineDash, lineJoin, lineWidth)
 import Color exposing (Color)
-
 import Rect exposing (..)
+
 
 type alias Selection =
     { rect : Rect, initialRect : Rect, color : Color, mode : SelectionMode }
@@ -15,6 +14,7 @@ type alias Selection =
 type SelectionMode
     = SelectionSource
     | SelectionSink Bool
+
 
 setActive : Bool -> SelectionMode -> SelectionMode
 setActive b mode =
@@ -25,17 +25,26 @@ setActive b mode =
         SelectionSink _ ->
             SelectionSink b
 
+
 isSource : Selection -> Bool
-isSource { mode } = 
-    case mode of 
-    SelectionSource -> True
-    _ -> False
+isSource { mode } =
+    case mode of
+        SelectionSource ->
+            True
+
+        _ ->
+            False
+
 
 isSink : Selection -> Bool
-isSink { mode } = 
-    case mode of 
-    SelectionSink _ -> True
-    _ -> False
+isSink { mode } =
+    case mode of
+        SelectionSink _ ->
+            True
+
+        _ ->
+            False
+
 
 selDown : Point -> Selection -> Selection
 selDown p sel =
@@ -75,7 +84,6 @@ selUp aspectM sel =
 mkSelection : Color -> SelectionMode -> Rect -> Selection
 mkSelection color mode initialRect =
     { rect = initialRect, initialRect = initialRect, color = color, mode = mode }
-
 
 
 isCleared : Selection -> Bool
