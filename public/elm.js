@@ -5500,7 +5500,7 @@ var $author$project$Main$initialModel = function () {
 	var selections = A2($author$project$Zipper$mkZipper, sourceSel, sinkSels);
 	var canvasDim = _Utils_Tuple2(400, 400);
 	var initialRender = A2($author$project$Main$clearCanvas, canvasDim, $avh4$elm_color$Color$lightGrey);
-	return {aspectM: $elm$core$Maybe$Nothing, blobUrl: '', cDim: canvasDim, dragging: false, initialRender: initialRender, recSteps: 1, renders: _List_Nil, selections: selections, showGrid: true, sourceRender: initialRender, tex: $elm$core$Maybe$Nothing, url: ''};
+	return {aspectM: $elm$core$Maybe$Nothing, blobUrl: '', cDim: canvasDim, dragging: false, initialRender: initialRender, recSteps: 1, renders: _List_Nil, selections: selections, showGrid: false, sourceRender: initialRender, tex: $elm$core$Maybe$Nothing, url: ''};
 }();
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);

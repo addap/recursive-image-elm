@@ -1,0 +1,17 @@
+version: "3.4"
+
+services:
+  recursive-image:
+    image: registry.gitlab.com/addapp/recursive-image-elm:latest
+    container_name: recursive-image
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - "~/dockerfiles/gnu.conf:/etc/nginx/conf.d/gnu.conf:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.recursive-image.rule=Host(`rec.dapprich.dev`) || Host(`rec.dappri.ch`)"
+      - "traefik.http.routers.recursive-image.entrypoints=websecure"
+      - "traefik.http.routers.recursive-image.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.recursive-image.loadbalancer.server.port=80"

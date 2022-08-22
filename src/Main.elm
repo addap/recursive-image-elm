@@ -165,7 +165,7 @@ initialModel =
     , url = ""
     , blobUrl = ""
     , recSteps = 1
-    , showGrid = True
+    , showGrid = False
     }
 
 
