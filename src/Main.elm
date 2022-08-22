@@ -3,25 +3,22 @@ port module Main exposing (main)
 import Browser
 import Canvas exposing (Point, Renderable, circle, group, lineTo, path, rect, shapes, texture)
 import Canvas.Settings exposing (fill, stroke)
-import Canvas.Settings.Advanced exposing (Transform, scale, transform, translate)
-import Canvas.Settings.Line exposing (lineWidth)
-import Canvas.Texture as T exposing (Source, Texture)
+import Canvas.Settings.Advanced exposing (scale, transform, translate)
+import Canvas.Texture as T exposing (Texture)
 import Color exposing (Color)
 import Debug exposing (toString)
 import File exposing (File)
-import File.Download
-import Html exposing (Html, button, div, input, label, source, text)
+import Html exposing (Html, button, div, input, label, text)
 import Html.Attributes exposing (checked, for, id, style, type_, value, width)
 import Html.Events exposing (on, onClick, onInput)
-import Html.Events.Extra.Drag exposing (startPortData)
 import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as D
-import Rect as R exposing (Rect, fitRectAspect, mkRect, mkRectDim, rectEmpty)
-import Selection as S exposing (Selection, SelectionMode(..), mkSelection, selDown, selMove, selUp)
+import Rect as R exposing (Rect, mkRect, rectEmpty)
+import Selection as S exposing (Selection, SelectionMode(..), selDown, selMove, selUp)
 import Task
-import Tuple exposing (first, second)
-import Util exposing (iter, iterCollect, list_mapi, trunc_tail)
-import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
+import Tuple exposing (first)
+import Util exposing (iterCollect, list_mapi, trunc_tail)
+import Zipper as Z exposing (Zipper, mkZipper, move)
 
 
 
@@ -36,9 +33,8 @@ import Zipper as Z exposing (Movement, Zipper, mkZipper, move)
   - cDim : The dimension of the canvas in pixels.
   - startPos : The start position of the selection rectangle.
   - curPos : The last position of the selection rectangle.
-  - rectSet : If the rectangle is "finished", i.e. if the user relased the mouse after dragging.
+  - rectSet : If the rectangle is "finished", i.e. if the user released the mouse after dragging.
   - dragging : If the selection rectangle is in the process of being changed.
-  - focussed :
   - url : File url of the image in the texture. When this is updated, the canvas will load a new texture.
   - recSteps : How many steps of recursion should be done.
 
@@ -275,7 +271,7 @@ This is done iteratively:
 addRecursions2 : Model -> Model
 addRecursions2 ({ sourceRender, renders, cDim, selections, recSteps } as model) =
     let
-        ( cWidth, cHeight ) =
+        ( cWidth, _ ) =
             cDim
 
         sourceRect =
@@ -510,7 +506,7 @@ changeSource tex model =
                 _ =
                     Debug.log "blob!" t
 
-                { width, height } =
+                { width } =
                     T.dimensions t
 
                 -- compute the scaling factor so that the new image fits into the canvas width
@@ -696,8 +692,6 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                             []
                        )
                 )
-
-            -- a hidden canvas displaying the initialRender so that JS can access it.
             , div []
                 [ button [ onClick (LoadTex "./assets/image.jpg") ] [ text "Load example" ]
                 , button [ onClick Stamp ] [ text "Stamp" ]
@@ -733,6 +727,7 @@ view ({ tex, renders, cDim, selections, url, blobUrl, aspectM, recSteps, initial
                 ]
             ]
         , div []
+            -- a hidden canvas displaying the initialRender so that JS can access it.
             [ Canvas.toHtml ( cWidth, cHeight )
                 [ id "initcanvas"
 

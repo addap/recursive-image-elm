@@ -79,7 +79,7 @@ selUp aspectM sel =
         { sel | rect = aspectRect }
 
 
-{-| Make a selection wihch is inactive by default.
+{-| Make a selection which is inactive by default.
 -}
 mkSelection : Color -> SelectionMode -> Rect -> Selection
 mkSelection color mode initialRect =
